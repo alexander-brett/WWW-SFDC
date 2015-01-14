@@ -1,4 +1,5 @@
 Changes
+INSTALL
 lib/WWW/SFDC.pm
 lib/WWW/SFDC/Login.pm
 lib/WWW/SFDC/Manifest.pm
