@@ -297,11 +297,6 @@ sub deployMetadata {
 
 }
 
-sub isSandbox {
-  my $self = shift;
-  return $self->_loginResult->{sandbox} eq  "true";
-}
-
 1;
 
 __END__

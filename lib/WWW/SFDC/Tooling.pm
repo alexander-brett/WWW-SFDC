@@ -87,6 +87,12 @@ has '_toolingClient',
       ->default_ns("urn:tooling.soap.sforce.com");
   };
 
+=head2 executeAnonymous
+
+    WWW::SFDC::Tooling->instance()->executeAnonymous("system.debug(1);")
+
+=cut
+
 sub executeAnonymous {
   my ($self, $code) = @_;
   my $req = $self->_toolingClient->call(

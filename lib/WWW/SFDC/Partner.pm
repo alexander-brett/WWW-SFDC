@@ -94,6 +94,12 @@ sub _call {
   return defined $req->paramsout() ? ($req->result(),$req->paramsout()): $req->result();
 }
 
+=head2 query
+
+    say $_->{Id} for WWW::SFDC::Partner->instance()->query($queryString);
+
+=cut
+
 sub query {
   my ($self, $query) = @_;
   INFO "Executing SOQL query: ".$query;
@@ -112,6 +118,14 @@ sub _cleanUpSObject {
   return \%copy;
 }
 
+=head2 update
+
+    say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->update
+      {Id => 'foo', Field__c => 'bar', Name => 'baz'}
+      {Id => 'bam', Field__c => 'bas', Name => 'bat'};
+
+=cut
+
 sub update {
   my ($self, @objects) = @_;
 
@@ -127,6 +141,12 @@ sub update {
 
   return $self->_call('update', map {SOAP::Data->name(sObjects => $_)}@objects );
 }
+
+=head2 setPassword
+
+    WWW::SFDC::Partner->instance()->setPassword Id=>$ID, Password=$newPassword;
+
+=cut
 
 sub setPassword {
   my ($self, %params) = @_;

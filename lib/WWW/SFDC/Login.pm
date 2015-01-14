@@ -32,11 +32,6 @@ our $VERSION = '0.01';
         url      => "baz",
     })->loginResult()->{"sessionId"};
 
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
 =head1 SUBROUTINES
 
 =cut
@@ -84,6 +79,18 @@ sub _login {
   DEBUG "request" => $request;
   ERROR "Login Failed: ".$request->faultstring if $request->fault;
   return $request->result();
+}
+
+=head2 isSandbox
+
+Returns 1 if the org associated with the given credentials are a sandbox. Use to
+decide whether to sanitise metadata or similar.
+
+=cut
+
+sub isSandbox {
+  my $self = shift;
+  return $self->_loginResult->{sandbox} eq  "true";
 }
 
 1;
