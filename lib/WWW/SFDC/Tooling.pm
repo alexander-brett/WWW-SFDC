@@ -125,7 +125,7 @@ Please report any bugs or feature requests at L<https://github.com/alexander-bre
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc WWW::SFDC::Login
+    perldoc WWW::SFDC::Tooling
 
 You can also look for information at L<https://github.com/alexander-brett/WWW-SFDC>
 

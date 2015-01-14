@@ -2,6 +2,7 @@ package WWW::SFDC::Metadata;
 
 use 5.12.0;
 use strict;
+use warnings;
 
 use Data::Dumper;
 use Logging::Trivial;

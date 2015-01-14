@@ -1,12 +1,12 @@
 package WWW::SFDC;
 
-use 5.12.0;
-use strict;
-use warnings FATAL => 'all';
+1; # this is a documentation module
+
+__END__
 
 =head1 NAME
 
-WWW::SFDC - The great new WWW::SFDC!
+WWW::SFDC - Wrappers arount the Salesforce.com APIs.
 
 =head1 VERSION
 
@@ -19,35 +19,127 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+WWW::SFDC provides a set of packages which you can use to build useful
+interactions with Salesforce.com's many APIs. Initially it was intended
+for the construction of powerful and flexible deployment tools.
 
-Perhaps a little code snippet.
+=head1 CONTENTS
 
-    use WWW::SFDC;
+ - WWW::SFDC::Login    - this is mainly an internal class for login caching.
+ - WWW::SFDC::Manifest
+ - WWW::SFDC::Metadata
+ - WWW::SFDC::Partner
+ - WWW::SFDC::Tooling
+ - WWW::SFDC::Zip
 
-    my $foo = WWW::SFDC->new();
-    ...
+=head1 METADATA API EXAMPLES
 
-=head1 EXPORT
+The following provides a starting point for a simple retrieval tool.
+Notice that after the initial setup of WWW::SFDC::Metadata the login
+credentials are cached. In this example, you'd use
+_retrieveTimeMetadataChanges to remove files you didn't want to track,
+change sandbox outbound message endpoints to production, or similar.
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+Notice that I've tried to keep the interface as fluent as possible in
+all of these modules - every method which doesn't have an obvious
+return value returns $self.
 
-=head1 SUBROUTINES/METHODS
+    package ExampleRetrieval;
 
-=head2 function1
+    use WWW::SFDC::Metadata;
+    use WWW::SFDC::Manifest;
+    use WWW::SFDC::Zip qw'unzip';
 
-=cut
+    WWW::SFDC::Metadata->instance(
+      password  => $password,
+      username  => $username,
+      url       => $url
+    );
 
-sub function1 {
-}
+    my $manifest = WWW::SFDC::Manifest
+      ->readFromFile($manifestFile)
+      ->add(
+        WWW::SFDC::Metadata
+          ->instance()
+          ->listMetadata(
+            {type => 'Document', folder => 'Apps'},
+            {type => 'Document', folder => 'Developer_Documents'},
+            {type => 'EmailTemplate', folder => 'Asset'},
+            {type => 'ApexClass'}
+          )
+      );
 
-=head2 function2
+    unzip
+      $destDir,
+      WWW::SFDC::Metadata->instance()->retrieveMetadata($manifest->manifest()),
+      \&_retrieveTimeMetadataChanges;
 
-=cut
+Here's a similar example for deployments. You'll want to construct
+@filesToDeploy and $deployOptions context-sensitively!
 
-sub function2 {
-}
+     package ExampleDeployment;
+
+     use WWW::SFDC::Metadata;
+     use WWW::SFDC::Manifest;
+     use WWW::SFDC::Zip qw'makezip';
+
+     my $manifest = WWW::SFDC::Manifest
+       ->new()
+       ->addList(@filesToDeploy)
+       ->writeToFile($srcDir.'package.xml');
+
+     my $zip = makezip
+       $srcDir,
+       $manifest->getFileList(),
+       'package.xml';
+
+    my $deployOptions = {
+       singlePackage => 'true',
+       rollbackOnError => 'true',
+       checkOnly => 'true'
+    };
+
+    WWW::SFDC::Metadata->instance(
+     username=>$username,
+     password=>$password,
+     url=>$url
+   )->deployMetadata $zip, $deployOptions;
+
+=head1 PARTNER API EXAMPLE
+
+To unsanitise some users' email address and change their profiles
+on a new sandbox, you might do something like this:
+
+    package ExampleUserSanitisation;
+
+    use WWW::SFDC::Partner;
+    use List::Util qw'first';
+
+    WWW::SFDC::Partner->instance(
+      username => $username,
+      password => $password,
+      url => $url
+    );
+
+    my @users = (
+      {User => alexander.brett, Email => alex@example.com, Profile => $profileId},
+      {User => another.user, Email => a.n.other@example.com, Profile => $profileId},
+    );
+
+    WWW::SFDC::Partner->instance()->update(
+      map {
+        my $row = $_;
+        my $original = first {$row->{Username} =~ /$$_{User}/} @users;
+        +{
+           Id => $row->{Id},
+           ProfileId => $original->{Profile},
+           Email => $original->{Email},
+        }
+      } WWW::SFDC::Partner->instance()->query(
+          "SELECT Id, Username FROM User WHERE "
+          . (join " OR ", map {"Username LIKE '%$_%'"} map {$_->{User}} @inputUsers)
+        )
+    );
 
 =head1 AUTHOR
 
@@ -55,45 +147,17 @@ Alexander Brett, C<< <alex at alexander-brett.co.uk> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-www-sfdc at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=WWW-SFDC>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
+Please report any bugs or feature requests at L<https://github.com/alexander-brett/WWW-SFDC/issues>.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc WWW::SFDC
+    perldoc WWW::SFDC::Metadata
+    ...
 
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=WWW-SFDC>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/WWW-SFDC>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/WWW-SFDC>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/WWW-SFDC/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
+You can also look for information at L<https://github.com/alexander-brett/WWW-SFDC>
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -125,5 +189,3 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 =cut
-
-1; # End of WWW::SFDC
