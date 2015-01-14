@@ -10,8 +10,8 @@ use WWW::SFDC::Login;
 use Moo;
 with 'MooX::Singleton';
 
-use SOAP::Lite;
-SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
+use SOAP::Lite readable => 1;
+SOAP::Lite->import( +trace => [qw(debug)]);# if DEBUG;
 
 =head1 NAME
 
@@ -19,11 +19,11 @@ WWW::SFDC::Tooling - Wrapper around SFDC Tooling API
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -87,6 +87,50 @@ has '_toolingClient',
       ->default_ns("urn:tooling.soap.sforce.com");
   };
 
+sub _call {
+  my ($self, @stuff) = @_;
+  my $req = $self->_toolingClient()->call(@stuff, $self->_sessionHeader());
+
+  DETAIL "Operation request" => $req;
+  ERROR "$stuff[0] Failed: " . $req->faultstring if $req->fault;
+
+  return defined $req->paramsout() ? ($req->result(),$req->paramsout()): $req->result();
+}
+
+=head1 METHODS
+
+=head2 create
+
+=cut
+
+sub create {
+  ...
+}
+
+=head2 delete
+
+=cut
+
+sub delete {
+  ...
+}
+
+=head2 describeGlobal
+
+=cut
+
+sub describeGlobal {
+  ...
+}
+
+=head2 describeSObjects
+
+=cut
+
+sub describeSObjects {
+  ...
+}
+
 =head2 executeAnonymous
 
     WWW::SFDC::Tooling->instance()->executeAnonymous("system.debug(1);")
@@ -95,16 +139,11 @@ has '_toolingClient',
 
 sub executeAnonymous {
   my ($self, $code) = @_;
-  my $req = $self->_toolingClient->call(
+  my $result = $self->_call(
     'executeAnonymous',
     SOAP::Data->name(string => $code),
     $self->_sessionHeader
    );
-
-  DEBUG "ExecuteAnonymous request" => $req;
-  ERROR "ExecuteAnonymous request failed: " . $req->faultstring if $req->fault;
-
-  my $result = $req->result();
 
   ERROR "ExecuteAnonymous failed to compile: " . $result->{compileProblem}
     if $result->{compiled} eq "false";
@@ -113,6 +152,65 @@ sub executeAnonymous {
     if $result->{success} eq "false";
 
   return $result;
+}
+
+=head2 query
+
+=cut
+
+sub query {
+  my ($self, $query) = @_;
+  INFO "Executing SOQL query: ".$query;
+
+  my $result = $self->_call('query', SOAP::Data->name(queryString => $query));
+
+  return map {my %copy = %$_; \%copy; }
+    ref $result->{records} eq 'ARRAY' ? @{$result->{records}} : $result->{records}
+    if defined $result->{records};
+
+  return undef;
+}
+
+=head2 retrieve
+
+=cut
+
+sub retrieve {
+  ...
+}
+
+=head2 runTests
+
+=cut
+
+sub runTests {
+  ...
+}
+
+=head2 runTestsAsynchronous
+
+=cut
+
+sub runTestsAsynchronous {
+  my ($self, @ids) = @_;
+
+  return $self->_call('runTestsAsynchronous', join ",", @ids);
+}
+
+=head2 update
+
+=cut
+
+sub update {
+  ...
+}
+
+=head2 upsert
+
+=cut
+
+sub upsert {
+ ...
 }
 
 1;
