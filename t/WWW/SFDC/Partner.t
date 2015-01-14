@@ -1,4 +1,6 @@
-use Modern::Perl '2013';
+use 5.12.0;
+use strict;
+use warnings;
 use Test::More;
 use Config::Properties;
 use Data::Dumper;
