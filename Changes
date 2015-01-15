@@ -1,5 +1,10 @@
 Revision history for WWW-SFDC
 
+0.021   2015-01-15
+        Make debugging for Tooling.pm optional!
+
+0.02    2015-01-14
+        Flesh out Tooling.pm a little.
+
 0.01    2015-01-14
         First version.
-

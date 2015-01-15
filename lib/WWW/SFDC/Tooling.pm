@@ -11,7 +11,7 @@ use Moo;
 with 'MooX::Singleton';
 
 use SOAP::Lite readable => 1;
-SOAP::Lite->import( +trace => [qw(debug)]);# if DEBUG;
+SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
 
 =head1 NAME
 
@@ -19,11 +19,11 @@ WWW::SFDC::Tooling - Wrapper around SFDC Tooling API
 
 =head1 VERSION
 
-Version 0.02
+Version 0.021
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.021';
 
 
 =head1 SYNOPSIS
