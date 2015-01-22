@@ -27,7 +27,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -86,6 +86,7 @@ following the final /.
 
 my %getEnding = (
   "applications"       => ".app",
+  "approvalProcesses" => ".approvalProcess",
   "classes"            => ".cls",
   "components"         => ".component",
   "datacategorygroups" => "UNDEFINED",
@@ -126,6 +127,7 @@ Flow.
 
 my %getName = (
   "applications" => "CustomApplication",
+  "approvalProcesses" => "ApprovalProcess",
   "classes" => "ApexClass",
   "components" => "ApexComponent",
   "datacategorygroups" => "DataCategoryGroup",
