@@ -12,7 +12,7 @@ use Moo;
 with "MooX::Singleton";
 
 use SOAP::Lite readable => 1;
-SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
+SOAP::Lite->import( +trace => [qw(debug)]);# if DEBUG;
 
 =head1 NAME
 
@@ -132,14 +132,22 @@ sub update {
   DEBUG "Objects for update" => @objects;
   INFO "Updating objects";
 
-  # nb that you're passing in objects unmodified. This means that the XML will look like
-  #  <update>
-  #    <junkName><type>foo</type><Id>bar</Id>...</junkName>
-  #    <junkName2>...</junkName2>
-  #  ...</update>
-  # ie. no <urn:sObjects> tag. SFDC doesn't seem to mind, at least for now...
+  my @soapObjects = map {
+    my $obj = $_;
+    my @type;
+    if ($obj->{type}) {
+      @type = ('type' => $obj->{type});
+      delete $obj->{type};
+    }
 
-  return $self->_call('update', map {SOAP::Data->name(sObjects => $_)}@objects );
+    SOAP::Data->name(sObjects => \SOAP::Data->value(
+      (@type ? SOAP::Data->name(@type): ()),
+      map {SOAP::Data->name($_ => $obj->{$_})} keys $obj
+     ))
+
+  } @objects;
+
+  return $self->_call('update', @soapObjects );
 }
 
 =head2 setPassword
