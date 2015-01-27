@@ -1,7 +1,8 @@
-package WWW::SFDC::Login;
+package WWW::SFDC::SessionManager;
 
 use 5.12.0;
 use strict;
+use warnings;
 
 use Logging::Trivial;
 
@@ -13,15 +14,15 @@ SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
 
 =head1 NAME
 
-WWW::SFDC::Login - Shared login class for Salesforce.com APIs
+WWW::SFDC::SessionManager - Manages auth and SOAP::Lite interactions for WWW::SFDC modules.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.1
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.1';
 
 
 =head1 SYNOPSIS
@@ -46,7 +47,6 @@ has 'password',
 
 has 'url',
   is => 'ro',
-  required => 1,
   isa => sub { $_[0] =~ s/\/$// or 1; }, #remove trailing slash
   default => "http://test.salesforce.com";
 
@@ -61,7 +61,7 @@ has 'loginResult',
   builder => '_login';
 
 sub _login {
-  my ($self) = @_;
+  my $self = shift;
 
   INFO "Logging in...\t";
 
@@ -81,6 +81,40 @@ sub _login {
   return $request->result();
 }
 
+=head2 call
+
+=cut
+
+sub _doCall {
+  my $self = shift;
+  my ($URL, $NS, @stuff) = @_;
+  return SOAP::Lite
+    ->proxy($URL)
+    ->readable(1)
+    ->default_ns($NS)
+    ->call(
+      SOAP::Header->name("SessionHeader" => {
+	"sessionId" => $self->loginResult()->{"sessionId"}
+      })->uri($NS),
+      @stuff
+     );
+}
+
+sub call {
+  my $self = shift;
+  my $req = $self->_doCall(@_);
+
+  if ($req->fault && $req->faultstring =~ /INVALID_SESSION_ID/) {
+    $self->loginResult($self->_login());
+    $req = $self->_doCall(@_);
+  }
+
+  DETAIL "Operation request" => $req;
+  ERROR "$_[0] Failed: " . $req->faultstring if $req->fault;
+
+  return $req;
+};
+
 =head2 isSandbox
 
 Returns 1 if the org associated with the given credentials are a sandbox. Use to
@@ -90,7 +124,7 @@ decide whether to sanitise metadata or similar.
 
 sub isSandbox {
   my $self = shift;
-  return $self->_loginResult->{sandbox} eq  "true";
+  return $self->loginResult->{sandbox} eq  "true";
 }
 
 1;

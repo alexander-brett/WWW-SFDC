@@ -6,13 +6,13 @@ use warnings;
 
 use Data::Dumper;
 use Logging::Trivial;
-use WWW::SFDC::Login;
+use WWW::SFDC::SessionManager;
 
 use Moo;
-with "MooX::Singleton";
+with "MooX::Singleton", "WWW::SFDC::Role::Session";
 
 use SOAP::Lite readable => 1;
-SOAP::Lite->import( +trace => [qw(debug)]);# if DEBUG;
+SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
 
 =head1 NAME
 
@@ -20,16 +20,16 @@ WWW::SFDC::Partner - Wrapper around the Salesforce.com Partner API
 
 =head1 VERSION
 
-Version 0.01
+Version 0.1
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.1';
 
 
 =head1 SYNOPSIS
 
-    my @objects = WWW::SFDC::Partner->instance({
+    my @objects = WWW::SFDC::Partner->instance(creds => {
         username => "foo",
         password => "bar",
         url      => "url",
@@ -41,58 +41,15 @@ our $VERSION = '0.01';
 
 =cut
 
-has 'apiVersion',
-  is => 'ro',
-  isa => sub { ERROR "The API version must be >= 31" unless $_[0] >= 31},
-  default => '31';
-
-has 'username', is => 'ro';
-has 'password', is => 'ro';
-has 'url', is => 'ro', default => "http://test.salesforce.com";
-has 'pollInterval', is => 'rw', default => 10;
-
-has '_loginResult',
-  is => 'ro',
-  lazy => 1,
-  default => sub {
-    my $self = shift;
-    WWW::SFDC::Login->instance(
-      username => $self->username,
-      password => $self->password,
-      url      => $self->url,
-      apiVersion => $self->apiVersion,
-     )->loginResult();
-   };
-
-has '_sessionHeader',
+has 'pollInterval',
   is => 'rw',
-  lazy => 1,
-  default => sub {
-    my ($self) = @_;
-    return SOAP::Header->name("SessionHeader" => {
-      "sessionId" => $self->_loginResult()->{"sessionId"}
-    })->uri("urn:partner.soap.sforce.com");
-  };
+  default => 10;
 
-has '_partnerClient',
-  is => 'rw',
-  lazy => 1,
-  default => sub {
-    my ($self) = @_;
-    return SOAP::Lite->readable(1)->proxy(
-      $self->_loginResult()->{"serverUrl"}
-     )->default_ns("urn:partner.soap.sforce.com");
-  };
+has 'uri',
+  is => 'ro',
+  default => "urn:partner.soap.sforce.com";
 
-sub _call {
-  my ($self, @stuff) = @_;
-  my $req = $self->_partnerClient()->call(@stuff, $self->_sessionHeader());
-
-  DETAIL "Operation request" => $req;
-  ERROR "$stuff[0] Failed: " . $req->faultstring if $req->fault;
-
-  return defined $req->paramsout() ? ($req->result(),$req->paramsout()): $req->result();
-}
+sub _extractURL { return $_[1]->{serverUrl} }
 
 =head2 query
 
@@ -127,27 +84,27 @@ sub _cleanUpSObject {
 =cut
 
 sub update {
-  my ($self, @objects) = @_;
+  my $self = shift;
 
-  DEBUG "Objects for update" => @objects;
+  DEBUG "Objects for update" => @_;
   INFO "Updating objects";
 
-  my @soapObjects = map {
-    my $obj = $_;
-    my @type;
-    if ($obj->{type}) {
-      @type = ('type' => $obj->{type});
-      delete $obj->{type};
-    }
+  return $self->_call(
+    'update',
+    map {
+      my $obj = $_;
+      my @type;
+      if ($obj->{type}) {
+	@type = SOAP::Data->name('type' => $obj->{type});
+	delete $obj->{type};
+      }
 
-    SOAP::Data->name(sObjects => \SOAP::Data->value(
-      (@type ? SOAP::Data->name(@type): ()),
-      map {SOAP::Data->name($_ => $obj->{$_})} keys $obj
-     ))
-
-  } @objects;
-
-  return $self->_call('update', @soapObjects );
+      SOAP::Data->name(sObjects => \SOAP::Data->value(
+	@type,
+	map {SOAP::Data->name($_ => $obj->{$_})} keys $obj
+       ))
+      } @_
+   );
 }
 
 =head2 setPassword

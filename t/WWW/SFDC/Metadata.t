@@ -19,27 +19,11 @@ SKIP: { #only execute if creds provided
     and $options->{password}
     and $options->{url};
 
-  ok my $client = WWW::SFDC::Metadata->instance(
+  ok my $client = WWW::SFDC::Metadata->instance(creds => {
     username => $options->{username},
     password => $options->{password},
     url => $options->{url},
-   ), "can create an sfdc client";
-
-  subtest "Login to SFDC" => sub {
-    my $result;
-
-    lives_ok { $result = $client->_loginResult() }
-      "Login to SFDC" or BAIL_OUT;
-
-    ok $result->{sessionId},
-      "Login result includes sessionId";
-
-    isa_ok $client->_metadataClient(),
-      "SOAP::Lite",
-      "Metadata client";
-
-    done_testing();
-  };
+   }), "can create an sfdc client";
 
  SKIP: {
 
@@ -50,10 +34,10 @@ SKIP: { #only execute if creds provided
       {type => "CustomObject"},
       {type => "Report", folder => "FooReports"}
      ), "List Metadata"
-       or skip "Can't retrieve or deploy because list failed";
+       or skip "Can't retrieve or deploy because list failed", 2;
 
     ok my $base64ZipString = $client->retrieveMetadata($manifest),
-      "Retrieve Metadata" or skip "Can't deploy because retrieve failed";
+      "Retrieve Metadata" or skip "Can't deploy because retrieve failed", 1;
 
     lives_ok {$client->deployMetadata($base64ZipString)}
       "Retrieve Metadata";

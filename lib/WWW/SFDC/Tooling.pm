@@ -5,10 +5,10 @@ use strict;
 use warnings;
 
 use Logging::Trivial;
-use WWW::SFDC::Login;
+use WWW::SFDC::SessionManager;
 
 use Moo;
-with 'MooX::Singleton';
+with 'MooX::Singleton', 'WWW::SFDC::Role::Session';
 
 use SOAP::Lite readable => 1;
 SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
@@ -19,82 +19,30 @@ WWW::SFDC::Tooling - Wrapper around SFDC Tooling API
 
 =head1 VERSION
 
-Version 0.021
+Version 0.1
 
 =cut
 
-our $VERSION = '0.021';
-
+our $VERSION = '0.1';
 
 =head1 SYNOPSIS
 
-   my $result = SFDC::tooling->instance(
-    username => "bar",
-    password => "baz",
-    url => "url"
-   )->executeAnonymous("System.debug(1);");
+   my $result = SFDC::tooling->instance(creds => {
+    username => $USER,
+    password => $PASS,
+    url => $URL
+   })->executeAnonymous("System.debug(1);");
+
+Note that $URL is the _login_ URL, not the Tooling API endpoint URL - which gets calculated internally.
 
 =cut
 
-has 'apiVersion',
+has 'uri',
   is => 'ro',
-  isa => sub { ERROR "The API version must be >= 31" unless $_[0] >= 31},
-  default => '31.0';
+  default => 'urn:tooling.soap.sforce.com';
 
-has 'username', is => 'ro';
-
-has 'password', is => 'ro';
-
-has 'url', is => 'ro', default => "http://test.salesforce.com"; #remove trailing slash
-
-has 'pollInterval',
-  is => 'rw',
-  default => 10;
-
-has '_loginResult',
-  is => 'ro',
-  lazy => 1,
-  default => sub {
-    my $self = shift;
-    WWW::SFDC::Login->instance(
-      username => $self->username,
-      password => $self->password,
-      url      => $self->url,
-      apiVersion => $self->apiVersion,
-     )->loginResult();
-   };
-
-has '_sessionHeader',
-  is => 'rw',
-  lazy => 1,
-  default => sub {
-    my ($self) = @_;
-    return SOAP::Header->name("SessionHeader" => {
-      "sessionId" => $self->_loginResult()->{"sessionId"}
-    })->uri("urn:tooling.soap.sforce.com");
-  };
-
-has '_toolingClient',
-  is => 'rw',
-  lazy => 1,
-  default => sub {
-    my ($self) = @_;
-    my $endpoint = $self->_loginResult()->{"serverUrl"};
-    $endpoint =~ s{/u/}{/T/};
-
-    return SOAP::Lite->readable(1)
-      ->proxy($endpoint)
-      ->default_ns("urn:tooling.soap.sforce.com");
-  };
-
-sub _call {
-  my ($self, @stuff) = @_;
-  my $req = $self->_toolingClient()->call(@stuff, $self->_sessionHeader());
-
-  DETAIL "Operation request" => $req;
-  ERROR "$stuff[0] Failed: " . $req->faultstring if $req->fault;
-
-  return defined $req->paramsout() ? ($req->result(),$req->paramsout()): $req->result();
+sub _extractURL {
+  return $_[1]->{serverUrl} =~ s{/u/}{/T/}r;
 }
 
 =head1 METHODS
@@ -141,8 +89,7 @@ sub executeAnonymous {
   my ($self, $code) = @_;
   my $result = $self->_call(
     'executeAnonymous',
-    SOAP::Data->name(string => $code),
-    $self->_sessionHeader
+    SOAP::Data->name(string => $code)
    );
 
   ERROR "ExecuteAnonymous failed to compile: " . $result->{compileProblem}

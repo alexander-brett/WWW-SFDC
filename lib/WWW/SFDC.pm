@@ -10,11 +10,11 @@ WWW::SFDC - Wrappers arount the Salesforce.com APIs.
 
 =head1 VERSION
 
-Version 0.021
+Version 0.1
 
 =cut
 
-our $VERSION = '0.022';
+our $VERSION = '0.1';
 
 
 =head1 SYNOPSIS
@@ -25,12 +25,36 @@ for the construction of powerful and flexible deployment tools.
 
 =head1 CONTENTS
 
- - WWW::SFDC::Login    - this is mainly an internal class for login caching.
- - WWW::SFDC::Manifest
- - WWW::SFDC::Metadata
- - WWW::SFDC::Partner
- - WWW::SFDC::Tooling
- - WWW::SFDC::Zip
+=over 4
+
+=item WWW::SFDC::SessionManager
+
+Provides the lowest-level interaction with SOAP::Lite. Handles the
+SessionID and renews it when necessary.
+
+=item WWW::SFDC::Manifest
+
+Stores and manipulates lists of metadata for retrieving and deploying
+to and from Salesforce.com.
+
+=item WWW::SFDC::Metadata
+
+Wraps the Metadata API.
+
+=item WWW::SFDC::Partner
+
+Wraps the Partner API.
+
+=item WWW::SFDC::Tooling
+
+Wraps the Tooling API.
+
+=item WWW::SFDC::Zip
+
+Provides utilities for creating and extracting base-64 encoded zip
+files for Salesforce.com retrievals and deployments.
+
+=back
 
 =head1 METADATA API EXAMPLES
 
@@ -50,11 +74,11 @@ return value returns $self.
     use WWW::SFDC::Manifest;
     use WWW::SFDC::Zip qw'unzip';
 
-    WWW::SFDC::Metadata->instance(
+    WWW::SFDC::Metadata->instance(creds => {
       password  => $password,
       username  => $username,
       url       => $url
-    );
+    });
 
     my $manifest = WWW::SFDC::Manifest
       ->readFromFile($manifestFile)
@@ -99,11 +123,11 @@ Here's a similar example for deployments. You'll want to construct
        checkOnly => 'true'
     };
 
-    WWW::SFDC::Metadata->instance(
+    WWW::SFDC::Metadata->instance(creds => {
      username=>$username,
      password=>$password,
      url=>$url
-   )->deployMetadata $zip, $deployOptions;
+   })->deployMetadata $zip, $deployOptions;
 
 =head1 PARTNER API EXAMPLE
 
@@ -115,11 +139,11 @@ on a new sandbox, you might do something like this:
     use WWW::SFDC::Partner;
     use List::Util qw'first';
 
-    WWW::SFDC::Partner->instance(
+    WWW::SFDC::Partner->instance(creds => {
       username => $username,
       password => $password,
       url => $url
-    );
+    });
 
     my @users = (
       {User => alexander.brett, Email => alex@example.com, Profile => $profileId},

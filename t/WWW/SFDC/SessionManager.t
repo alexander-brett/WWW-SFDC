@@ -6,15 +6,15 @@ use Test::More;
 use Test::Exception;
 use Config::Properties;
 
-use_ok "WWW::SFDC::Login";
+use_ok "WWW::SFDC::SessionManager";
 
 throws_ok
-  { WWW::SFDC::Login->instance() }
+  { WWW::SFDC::SessionManager->instance() }
   qr/Missing required arguments:/,
   "Constructor requires options";
 
 throws_ok
-  { WWW::SFDC::Login->instance(
+  { WWW::SFDC::SessionManager->instance(
     username => 'foo',
     password => 'baz',
     url => 'https://test.salesforce.com',
@@ -23,14 +23,14 @@ throws_ok
   qr/The API version must be >= 31/,
   "The API version must be >= 31";
 
-new_ok 'WWW::SFDC::Login', [
+new_ok 'WWW::SFDC::SessionManager', [
   username => 'foo',
   password => 'baz',
   url => 'https://test.salesforce.com',
   apiVersion => 31
  ];
 
-is WWW::SFDC::Login->instance(
+is WWW::SFDC::SessionManager->instance(
   username => 'foo',
   password => 'baz',
   url => 'https://test.salesforce.com/'

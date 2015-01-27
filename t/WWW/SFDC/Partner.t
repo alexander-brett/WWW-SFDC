@@ -4,18 +4,18 @@ use warnings;
 use Test::More;
 use Config::Properties;
 use Data::Dumper;
-use Logging::trivial;
+
 use_ok 'WWW::SFDC::Partner';
 
 my $options = Config::Properties
   ->new(file => "t/test.config")
   ->splitToTree() if -e "t/test.config";
 
-ok my $client = WWW::SFDC::Partner->instance(
+ok my $client = WWW::SFDC::Partner->instance(creds => {
   username => $options->{username},
   password => $options->{password},
   url => $options->{url},
- ), "can create an sfdc client";
+ }), "can create an sfdc client";
 
 SKIP: {
 

@@ -1,5 +1,15 @@
 Revision history for WWW-SFDC
 
+0.1     2015-01-27
+        Lots of breaking changes:
+        
+        - Renamed Login.pm => SessionManager.pm
+        - All SOAP::Lite interaction now goes through SessionManager->_call().
+        - SessionManager->_call() catches an INVALID_SESSION_ID error and regenerates it.
+        - Role::Session provides a transparent interface to SessionManager to
+          Tooling, Metadata and Partner.
+        - Creds merged into one creds() attribute, handled by Role::Session.
+
 0.021   2015-01-15
         Make debugging for Tooling.pm optional!
 

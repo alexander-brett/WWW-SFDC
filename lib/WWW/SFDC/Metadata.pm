@@ -6,10 +6,10 @@ use warnings;
 
 use Data::Dumper;
 use Logging::Trivial;
-use WWW::SFDC::Login;
+use WWW::SFDC::SessionManager;
 
 use Moo;
-with "MooX::Singleton";
+with "MooX::Singleton", "WWW::SFDC::Role::Session";
 
 use SOAP::Lite;
 SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
@@ -20,19 +20,19 @@ WWW::SFDC::Metadata - Perl wrapper for the Salesforce.com Metadata API
 
 =head1 VERSION
 
-Version 0.01
+Version 0.1
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.1';
 
 =head1 SYNOPSIS
 
- my $client = Sophos::sfdc->instance(
+ my $client = Sophos::sfdc->instance(creds => {
    username => 'foo',
    password => 'bar',
    url => 'https://login.salesforce.com'
- );
+ });
 
  my $manifest = $client->listMetadata(
    {type => "CustomObject"},
@@ -50,68 +50,18 @@ our $VERSION = '0.01';
 
 For more in-depth examples, see t/WWW/SFDC/Metadata.t
 
-=head1 PROPERTIES
-
-=over 4
-
-=item username
-
-=item password
-
-=item url
-
-The Salesforce login url:
-
- - https://login.salesforce.com for a live environment
- - https://test.salesforce.com for a sandbox
-
-NB the lack of a trailing slash.
-
-=back
-
 =cut
 
-has 'apiVersion',
-  is => 'ro',
-  default => '31.0';
-
-has 'username', is => 'ro';
-has 'password', is => 'ro';
-has 'url', is => 'ro', default => "http://test.salesforce.com";
 has 'pollInterval', is => 'rw', default => 20;
+has 'apiVersion', is => 'ro', default => 31;
 
-has '_loginResult',
+has 'uri',
   is => 'ro',
-  lazy => 1,
-  default => sub {
-    my $self = shift;
-    WWW::SFDC::Login->instance(
-      username => $self->username,
-      password => $self->password,
-      url      => $self->url,
-      apiVersion => $self->apiVersion,
-     )->loginResult();
-   };
+  default => "http://soap.sforce.com/2006/04/metadata";
 
-has '_sessionHeader',
-  is => 'rw',
-  lazy => 1,
-  default => sub {
-    my ($self) = @_;
-    return SOAP::Header->name("SessionHeader" => {
-      "sessionId" => $self->_loginResult()->{"sessionId"}
-    })->uri("http://soap.sforce.com/2006/04/metadata");
-  };
-
-has '_metadataClient',
-  is => 'rw',
-  lazy => 1,
-  default => sub {
-    my ($self) = @_;
-    return SOAP::Lite->readable(1)->proxy(
-      $self->_loginResult()->{"metadataServerUrl"}
-     )->default_ns("http://soap.sforce.com/2006/04/metadata");
-  };
+sub _extractURL {
+  return $_[1]->{metadataServerUrl};
+}
 
 =head1 METHODS
 
@@ -137,24 +87,11 @@ sub listMetadata {
 
   # listMetadata can only handle 3 requests at a time, so we chunk them.
   while (my @items = splice @queryData, 0, 3) {
-
-    my $req = $self->_metadataClient()->call(
-      'listMetadata',
-      @items,
-      $self->_sessionHeader()
-     );
-
-    DEBUG "listMetadata request" => $req;
-    ERROR "List Metadata Failed: " . $req->faultstring if $req->fault;
-
-    push @{ $result{$$_{type}} }, $$_{fullName}
-      for $req->paramsout(), $req->result();
+    push @{ $result{$$_{type}} }, $$_{fullName} for $self->_call('listMetadata', @items);
   }
 
   return \%result;
 }
-
-
 
 =head2 retrieveMetadata $manifest
 
@@ -177,8 +114,6 @@ sub _startRetrieval {
 
   my ($self, $manifest) = @_;
 
-  ERROR "For a retrieval the API version must be 31 or greater" if $self->apiVersion < 31;
-
   # These maps basically preserve the structure passed in,
   # translating it to salesforce's special package.xml structure.
   my @queryData = map {
@@ -191,20 +126,16 @@ sub _startRetrieval {
     } keys %$manifest;
 
 
-  my $request = $self->_metadataClient()->call(
+  return $self->_call(
     'retrieve',
     SOAP::Data->name(
       retrieveRequest => {
 	# a lower value than 31 means no status is retrieved, causing an error.
 	apiVersion => $self->apiVersion(),
 	unpackaged => \SOAP::Data->value(@queryData)
-      }),
-    $self->_sessionHeader()
-   );
+      })
+   )->{id};
 
-  DEBUG "Retrieve metadata request" => $request;
-  ERROR "Retrieve Metadata Failed: ".$request->faultstring if $request->fault;
-  return $request->result()->{id};
 }
 
 # Uses the id to request a status update from SFDC, and returns
@@ -215,14 +146,11 @@ sub _checkRetrieval {
   my ($self, $id) = @_;
   ERROR "No ID was passed in!" unless $id;
 
-  my $request = $self->_metadataClient()->call(
+  my $result = $self->_call(
     'checkRetrieveStatus',
-    SOAP::Data->name("asyncProcessId" => $id),
-    $self->_sessionHeader()
+    SOAP::Data->name("asyncProcessId" => $id)
    );
 
-  ERROR "Check Retrieve Failed: ". $request->faultstring if $request->fault;
-  my $result = $request->result();
   INFO "Status:" . $$result{status};
 
   return $result->{zipFile} if $$result{status} eq "Succeeded";
@@ -260,16 +188,12 @@ sub _checkDeployment {
   my ($self, $id) = @_;
   ERROR "No ID was passed in" unless $id;
 
-  my $request = $self->_metadataClient()->call(
+  my $result = $self->_call(
     'checkDeployStatus',
     SOAP::Data->name("id" => $id),
-    SOAP::Data->name("includeDetails" => "true"),
-    $self->_sessionHeader()
+    SOAP::Data->name("includeDetails" => "true")
    );
 
-  DEBUG "Deploy request" => $request;
-  ERROR "Check Deploy Failed: ". $request->faultstring if $request->fault;
-  my $result = $request->result();
   INFO "Deployment status:\t".$$result{status};
   return 1 if $$result{status} eq "Succeeded";
   return undef if $$result{status} =~ /Queued|Pending|InProgress/;
@@ -280,16 +204,12 @@ sub _checkDeployment {
 sub deployMetadata {
   my ($self, $zip, $deployOptions) = @_;
 
-  my $options = SOAP::Data->name(DeployOptions=>$deployOptions) if $deployOptions;
-  my $request = $self->_metadataClient()->call(
+  my $result = $self->_call(
     'deploy',
     SOAP::Data->name( zipfile => $zip),
-    $options,
-    $self->_sessionHeader()
+    ($deployOptions ? SOAP::Data->name(DeployOptions=>$deployOptions) : ())
    );
 
-  ERROR "Deploy Metadata Failed: ".$request->faultstring if $request->fault;
-  my $result = $request->result();
   INFO "Deployment status:\t".$$result{state};
 
   #do..until guarantees that sleep() executes at least once.
