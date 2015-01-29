@@ -6,9 +6,10 @@ use warnings;
 
 use XML::Parser;
 use Scalar::Util qw(blessed);
-use List::Util qw(first);
+use List::Util qw'first reduce pairmap pairgrep pairfirst';
 use Data::Dumper;
 use Logging::Trivial;
+use WWW::SFDC::Constants qw(needsMetaFile hasFolders getEnding getDiskName getName);
 
 use Moo;
 
@@ -23,12 +24,11 @@ WWW::SFDC::Manifest - utility functions for Salesforce Metadata API interactions
 
 =head1 VERSION
 
-Version 0.01
+Version 0.1
 
 =cut
 
-our $VERSION = '0.02';
-
+our $VERSION = '0.1';
 
 =head1 SYNOPSIS
 
@@ -45,175 +45,29 @@ and get a structure suitable for passing into WWW::SFDC::Metadata functions.
    my $HashRef = $Manifest->manifest();
    my $XMLString = $Manifest->getXML();
 
-=head1 CONFIG
-
-These hashes store information about different metadata types.
-
-=over 4
-
-=item %needsMetaFile
-
-Stores 1 if the given metadata type requires a metadata file, for example:
-C<< bar() if $needsMetaFile{"foo"}; >>
-
 =cut
 
-my %needsMetaFile = map {$_ => 1} qw{
-				      classes components  documents
-				      email   pages   staticresources
-				      triggers
-				  };
+# _splitLine($line)
 
-my %hasFolders = map {$_ => 1} qw{
-				   reports documents email
-			       };
+# Takes a string representing a file on disk, such as "email/foo/bar.email-meta.xml",
+# and returns a hash containing the metadata type, folder name, file name, and
+# file extension, excluding -meta.xml.
 
-=item %getEnding
-
-Stores the file ending for the metadata type, if there is one. For
-instance, foo.png and foo.baz are both valid document file endings,
-but a profile can only be called foo.profile, so
-$getEnding{"documents"} = undef.
-
-NB that two of these values are UNDEFINED because I don't know what
-the value is.
-
-The absence of a key from this hash indicates that that value is a
-subcomponent, which is to say that the name is always everything
-following the final /.
-
-=cut
-
-my %getEnding = (
-  "applications"       => ".app",
-  "approvalProcesses" => ".approvalProcess",
-  "classes"            => ".cls",
-  "components"         => ".component",
-  "datacategorygroups" => "UNDEFINED",
-  "documents"          => undef,
-  "email"              => ".email",
-  "flows"              => "UNDEFINED",
-  "groups"             => ".group",
-  "homePageComponents" => ".homePageComponent",
-  "homePageLayouts"    => ".homePageLayout",
-  "labels"             => ".labels",
-  "layouts"            => ".layout",
-  "objects"            => ".object",
-  "pages"              => ".page",
-  "permissionsets"     => ".permissionset",
-  "portals"            => ".portal",
-  "profiles"           => ".profile",
-  "queues"             => ".queue",
-  "quickActions"       => ".quickAction",
-  "remoteSiteSettings" => ".remoteSite",
-  "reportTypes"        => ".reportType",
-  "reports"            => ".report",
-  "sites"              => ".site",
-  "staticresources"    => ".resource",
-  "tabs"               => ".tab",
-  "triggers"           => ".trigger",
-  "weblinks"           => ".weblink",
-  "workflows"          => ".workflow"
- );
-
-=item %getName
-
-Stores the metadata api name corresponding to the folder name on disk.
-For instance, the metadata name corresponding to the applications/
-folder is CustomApplication, but the name corresponding to flows/ is 
-Flow.
-
-=cut
-
-my %getName = (
-  "applications" => "CustomApplication",
-  "approvalProcesses" => "ApprovalProcess",
-  "classes" => "ApexClass",
-  "components" => "ApexComponent",
-  "datacategorygroups" => "DataCategoryGroup",
-  "documents" => "Document",
-  "email" => "EmailTemplate",
-  "flows" => "Flow",
-  "groups" => "Group",
-  "homePageComponents" => "HomePageComponent",
-  "homePageLayouts" => "HomePageLayout",
-  "labels" => "CustomLabels",
-  "layouts" => "Layout",
-  "objects" => "CustomObject",
-  "pages" => "ApexPage",
-  "permissionsets" => "PermissionSet",
-  "portals" => "Portal",
-  "profiles" => "Profile",
-  "queues" => "Queue",
-  "quickActions" => "QuickAction",
-  "remoteSiteSettings" => "RemoteSiteSetting",
-  "reportTypes" => "ReportType",
-  "reports" => "Report",
-  "sites" => "CustomSite",
-  "staticresources" => "StaticResource",
-  "tabs" => "CustomTab",
-  "triggers" => "ApexTrigger",
-  "weblinks" => "CustomPageWebLink",
-  "workflows" => "Workflow",
-  #subcomponents
-  "actionOverrides" => "ActionOverride",
-  "alerts" => "WorkflowAlert",
-  "businessProcesses" => "BusinessProcess",
-  "fieldSets" => "FieldSet",
-  "fieldUpdates" => "WorkflowFieldUpdate",
-  "fields" => "CustomField",
-  "listViews" => "ListView",
-  "outboundMessages" => "WorkflowOutboundMessage",
-  "recordTypes" => "RecordType",
-  "rules" => "WorkflowRule",
-  "tasks" => "WorkflowTask",
-  "validationRules" => "ValidationRule",
-  "webLinks" => "WebLink",
- );
-
-sub _getDiskName {
-  my ($self, $query) = @_;
-  return first {$getName{$_} eq $query} keys %getName;
-}
-
-sub _getName {
-  my ($query) = @_;
-  return $getName{$query};
-}
-
-=back
-
-=head1 METHODS
-
-=over 4
-
-=item splitLine($line)
-
-Takes a string representing a file on disk, such as "email/foo/bar.email-meta.xml",
-and returns a hash containing the metadata type, folder name, file name, and
-file extension, excluding -meta.xml.
-
-This takes into account the extensions defined above; for instance, for a document
-called foo.png, the name is "foo.png" and the extension is "", because
-$getName{document} is "*", whereas for an object called "foo.object", the name is "foo".
-
-=cut
-
-sub splitLine {
-  my ($self,$line) = @_;
+sub _splitLine {
+  my ($self, $line) = @_;
 
   ERROR "No line!" unless $line;
 
   # clean up the line
   $line =~ s/.*src\///;
-  $line =~ s/[\n\r]//;
+  $line =~ s/[\n\r]//g;
 
   my %result = ("extension" => "");
 
   ($result{"type"}) = $line =~ /^(\w+)\// or ERROR "Line $line doesn't have a type.";
   $result{"folder"} = $1 if $line =~ /\/(\w+)\//;
 
-  my $extension = $getEnding{$result{"type"}};
+  my $extension = getEnding($result{"type"});
 
   if ($line =~ /\/(\w+)-meta.xml/) {
     $result{"name"} = $1
@@ -231,96 +85,92 @@ sub splitLine {
   return \%result;
 }
 
-=item getFilesForLine($line)
+# _getFilesForLine($line)
 
-Takes a string representing a file on disk, such as "email/foo/bar.email",
-and returns a list representing all the files needed in the zip file for
-that file to be successfully deployed, for example:
+# Takes a string representing a file on disk, such as "email/foo/bar.email",
+# and returns a list representing all the files needed in the zip file for
+# that file to be successfully deployed, for example:
 
-- email/foo-meta.xml
-- email/foo/bar.email
-- email/foo/bar.email-meta.xml
+# - email/foo-meta.xml
+# - email/foo/bar.email
+# - email/foo/bar.email-meta.xml
 
-=cut
-
-sub getFilesForLine {
+sub _getFilesForLine {
   my ($self, $line) = @_;
-  my @output = ();
 
   return unless $line;
 
-  my %split = %{$self->splitLine($line)};
+  my %split = %{$self->_splitLine($line)};
 
-  if ($split{"folder"}) {
-    push @output, "$split{type}/$split{folder}-meta.xml";
-    push @output, "$split{type}/$split{folder}/$split{name}$split{extension}";
-
-    push @output,
-      "$split{type}/$split{folder}/$split{name}$split{extension}-meta.xml"
-      if $needsMetaFile{$split{"type"}};
-
-  } else {
-    push @output, "$split{type}/$split{name}$split{extension}";
-
-    push @output, "$split{type}/$split{name}$split{extension}-meta.xml"
-      if $needsMetaFile{$split{"type"}};
-  }
-
-  return @output;
+  return map {"$split{type}/$_"} (
+    $split{"folder"}
+    ?(
+      "$split{folder}-meta.xml",
+      "$split{folder}/$split{name}$split{extension}",
+      (needsMetaFile($split{"type"}) ? "$split{folder}/$split{name}$split{extension}-meta.xml" : ())
+     )
+    :(
+      "$split{name}$split{extension}",
+      (needsMetaFile($split{"type"}) ? "$split{name}$split{extension}-meta.xml" : ())
+     )
+   )
 }
 
-=item getFileList(@list)
 
-Applies getFilesForLine to each item of the input and returns
-the output, deduplicated.
+# _dedupe($listref)
 
-=cut
+# Returns a list reference to a _deduped version of the list
+# reference passed in.
 
-sub getFileList {
-  my $self = shift;
-  my @result;
-  for my $key (keys %{$self->manifest}) {
-    my $type = $self->_getDiskName($key);
-    my $ending = $getEnding{$type} || "";
-
-    for my $value (@{ $self->manifest->{$key}}) {
-      if ($hasFolders{$type} and $value !~ /\//) {
-	push @result, "$type/$value-meta.xml";
-      } else {
-	push @result, "$type/$value$ending";
-	push @result, "$type/$value$ending-meta.xml" if $needsMetaFile{$type};
-      }
-    }
-  }
-  return @result;
-}
-
-=item dedupe($listref)
-
-Returns a list reference to a deduped version of the list
-reference passed in.
-
-=cut
-
-sub dedupe {
+sub _dedupe {
   my ($self) = @_;
   my %result;
   for my $key (keys %{$self->manifest}) {
-    my %deduped = map {$_ => 1} @{$self->manifest->{$key}};
-    $result{$key} = [sort keys %deduped];
+    my %_deduped = map {$_ => 1} @{$self->manifest->{$key}};
+    $result{$key} = [sort keys %_deduped];
   }
   $self->manifest(\%result);
   return $self;
 }
 
+=back
+
+=head1 METHODS
+
+=over 4
+
+=item getFileList(@list)
+
+Returns a list of files needed to deploy this manifest. Use this to construct
+a .zip file.
+
+=cut
+
+sub getFileList {
+  my $self = shift;
+
+  return map {
+    my $type = getDiskName($_);
+    my $ending = getEnding($type) || "";
+
+    map {
+      if (hasFolders($type) and $_ !~ /\//) {
+	"$type/$_-meta.xml";
+      } else {
+	"$type/$_$ending", (needsMetaFile($type) ? "$type/$_$ending-meta.xml" : () );
+      }
+    } @{ $self->manifest->{$_} }
+  } keys %{$self->manifest};
+}
+
 =item add($manifest)
+
+Adds an existing manifest object or hash to this one.
 
 =cut
 
 sub add {
   my ($self, $new) = @_;
-
-  my %result;
 
   if (defined blessed $new and blessed $new eq blessed $self) {
     push @{$self->manifest->{$_}}, @{$new->manifest->{$_}} for keys %{$new->manifest};
@@ -328,7 +178,7 @@ sub add {
     push @{$self->manifest->{$_}}, @{$new->{$_}} for keys %$new;
   }
 
-  return $self->dedupe();
+  return $self->_dedupe();
 }
 
 =item addList($isDeletion, @list)
@@ -339,59 +189,44 @@ into a manifest file
 =cut
 
 sub addList {
-  my ($self, @lines) = @_;
-  my %result = %{ $self->manifest };
+  my $self = shift;
 
-  for (@lines) {
-    my %split = %{$self->splitLine($_)};
-    my $type = $getName{$split{type}} or warn "couldn't find a name for $split{type}";
-
-    if ($split{folder}) {
-      push @{$result{$type}}, $split{folder} unless $self->isDeletion;
-      push @{$result{$type}}, "$split{folder}/$split{name}";
-    } else {
-      push @{$result{$type}}, $split{name};
-    }
-  }
-
-  return $self->add(\%result);
-
+  return reduce {$a->add($b)} $self, map {
+    +{ getName($$_{type}) => [
+      $$_{folder}
+      ? (($self->isDeletion ? () : $$_{folder}), "$$_{folder}/$$_{name}")
+      : ($$_{name})
+     ]}
+  } map {$self->_splitLine($_)} @_;
 }
 
 =item readFromFile $location
 
-Reads a salesforce package manifest and returns a hash
-ready to be fed into Sophos::sfdc::retrieveMetadata.
+Reads a salesforce package manifest and adds it to the current object, then
+returns it.
 
 =cut
 
 sub readFromFile {
   my ($self, $fileName) = @_;
 
-  my $root = XML::Parser->new(Style=>"Tree")->parsefile($fileName)->[1];
-  my %result;
-
-  do {
-    my $node = $_;
-    my ($name, @members);
-    for (grep {$_%2} 0..$#$node) {
-      $name = $node->[$_+1]->[2] if $node->[$_] eq 'name';
-      push @members, $node->[$_+1]->[2] if $node->[$_] eq 'members';
-    }
-    push @{$result{$name}}, @members;
-  } for map {$_->{value}} grep {$_->{key} eq 'types'}
-    map {+{key => $root->[$_], value => $root->[$_+1]}} # split into key/value pairs
-    grep {$_%2} 1..$#$root; # ignore first element
-
-  $self->manifest(\%result);
-  DEBUG "Manifest read from file" => $self->manifest;
-
-  return $self;
+  return reduce {$a->add($b)} $self, map {+{
+    do {
+      pairmap {$b->[2]} pairfirst {$a eq 'name'} @$_
+    } => [
+      pairmap {$b->[2]} pairgrep {$a eq 'members'} @$_
+     ]
+  }}
+    pairmap {[splice @{$b}, 1]} pairgrep {$a eq 'types'}
+    splice @{
+      XML::Parser->new(Style=>"Tree")->parsefile($fileName)->[1]
+      }, 1;
 }
 
 =item writeToFile $location
 
-Writes the manifest's xml representation to the given file.
+Writes the manifest's XML representation to the given file and returns
+the manifest object.
 
 =cut
 
@@ -404,22 +239,25 @@ sub writeToFile {
 
 =item getXML($mapref)
 
+Returns the XML representation for this manifest.
+
 =cut
 
 sub getXML {
   my ($self) = @_;
-  my $result = "<?xml version='1.0' encoding='UTF-8'?>";
-  $result .= "<Package xmlns='http://soap.sforce.com/2006/04/metadata'>";
-
-  for my $key (sort keys %{$self->manifest}) {
-    $result .= "<types>";
-    $result .= "<name>$key</name>";
-    $result .= "<members>$_</members>" for @{$self->manifest->{$key}};
-    $result .= "</types>";
-  }
-
-  $result .= "<version>".$self->apiVersion."</version></Package>";
-  return $result;
+  return join "", (
+    "<?xml version='1.0' encoding='UTF-8'?>",
+    "<Package xmlns='http://soap.sforce.com/2006/04/metadata'>",
+    (
+      map {(
+	"<types>",
+	"<name>$_</name>",
+	( map {"<members>$_</members>"} @{$self->manifest->{$_}} ),
+	"</types>",
+       )} sort keys %{$self->manifest}
+     ),
+    "<version>",$self->apiVersion,"</version></Package>"
+   );
 }
 
 

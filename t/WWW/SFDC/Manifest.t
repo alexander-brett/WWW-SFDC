@@ -8,7 +8,7 @@ use Test::More;
 #make sure we can load the library
 use_ok("WWW::SFDC::Manifest") or BAIL_OUT("Couldn't load WWW::SFDC::Manifest");
 
-diag "SECTION splitLine";
+diag "SECTION _splitLine";
 
 my @splitLineData = ({
   input => "objects/lead.object",
@@ -85,14 +85,14 @@ my @splitLineData = ({
   }, "reason" => 'documents meta file should work'
 });
 
-is_deeply WWW::SFDC::Manifest->splitLine($$_{"input"}),
+is_deeply WWW::SFDC::Manifest->_splitLine($$_{"input"}),
   $$_{"output"},
   $$_{"reason"}
   for @splitLineData;
 
 
 
-diag "SECTION getFilesForLine";
+diag "SECTION _getFilesForLine";
 
 my @getFilesForLineData = ({
   "input" => "",
@@ -117,7 +117,7 @@ my @getFilesForLineData = ({
 });
 
 is_deeply
-  [sort(WWW::SFDC::Manifest->getFilesForLine($$_{"input"}))],
+  [sort(WWW::SFDC::Manifest->_getFilesForLine($$_{"input"}))],
   [sort(@{$$_{"output"}})],
   $$_{"reason"}
   for @getFilesForLineData;
@@ -154,12 +154,12 @@ is_deeply
 
 
 
-diag "SECTION dedupe";
+diag "SECTION _dedupe";
 
 is_deeply
   WWW::SFDC::Manifest
   ->new(manifest=>{"objects" => ["foo","foo","bar"]})
-  ->dedupe()->manifest,
+  ->_dedupe()->manifest,
   {
     "objects" => ["bar","foo"]};
 
