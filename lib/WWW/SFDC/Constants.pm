@@ -270,5 +270,5 @@ sub getName {
 =cut
 
 sub getSubcomponents {
-  return grep {$TYPES{+shift}->{subcomponent}} keys %TYPES;
+  return grep {$TYPES{$_}->{subcomponent}} keys %TYPES;
 }
