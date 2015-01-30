@@ -9,8 +9,7 @@ use Logging::Trivial;
 use Moo;
 with 'MooX::Singleton';
 
-use SOAP::Lite ;
-SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
+use SOAP::Lite +trace => [debug => \&DEBUG];
 
 =head1 NAME
 
@@ -76,7 +75,7 @@ sub _login {
       SOAP::Data->name("password")->value($self->password())
      );
 
-  DEBUG "request" => $request;
+  DETAIL "request" => $request;
   ERROR "Login Failed: ".$request->faultstring if $request->fault;
   return $request->result();
 }
@@ -88,6 +87,9 @@ sub _login {
 sub _doCall {
   my $self = shift;
   my ($URL, $NS, @stuff) = @_;
+
+  INFO "Starting $stuff[0] request";
+
   return SOAP::Lite
     ->proxy($URL)
     ->readable(1)

@@ -1,40 +1,29 @@
-package WWW::SFDC::Constants;
-
 use 5.12.0;
 use strict;
 use warnings;
 
 use List::Util 'first';
 
-our $VERSION = '0.1';
+=head2 endings
 
-BEGIN {
-  use Exporter;
-  our @ISA = qw(Exporter);
-  our @EXPORT_OK = qw(needsMetaFile hasFolders getEnding getDiskName getName getSubcomponents);
-}
+Stores the file ending for the metadata type, if there is one. For
+instance, foo.png and foo.baz are both valid document file endings,
+but a profile can only be called foo.profile, so
+$getEnding{"documents"} = undef.
 
-=head1 Metadata Types
+NB that two of these values are UNDEFINED because I don't know what
+the value is.
 
-=head2 ending
+The absence of a key from this hash indicates that that value is a
+subcomponent, which is to say that the name is always everything
+following the final /.
 
-Stores the file ending for the metadata type, if there is one.
+=head2 %names
 
-NB that two of these values are UNKNOWN because I don't know what the value is.
-
-=head2 name
-
-Stores the metadata API name corresponding to the folder name on disk. For instance, the
-metadata name corresponding to the applications/ folder is CustomApplication, but the name
-corresponding to flows/ is Flow.
-
-=head2 meta
-
-Set if the component has associated -meta.xml files (nb not counting folder xml files).
-
-=head2 folders
-
-Set if the type occurs within folders.
+Stores the metadata api name corresponding to the folder name on disk.
+For instance, the metadata name corresponding to the applications/
+folder is CustomApplication, but the name corresponding to flows/ is 
+Flow.
 
 =cut
 
@@ -220,55 +209,23 @@ my %TYPES = (
   },
 );
 
-=head1 Methods
-
-These are pretty self-explanatory.
-
-=head2 needsMetaFile
-
-=cut
-
 sub needsMetaFile {
-  return $TYPES{+shift}->{meta};
+  return $TYPES{shift}->{meta};
 }
-
-=head2 hasFolders
-
-=cut
 
 sub hasFolders {
-  return $TYPES{+shift}->{folders};
+  return $TYPES{shift}->{folders};
 }
-
-=head2 getEnding
-
-=cut
 
 sub getEnding {
-  return $TYPES{+shift}->{ending};
+  return $TYPES{shift}->{ending};
 }
-
-=head2 getDiskName
-
-=cut
 
 sub getDiskName {
   my $query = shift;
   return first {$TYPES{$_}->{name} eq $query} keys %TYPES;
 }
 
-=head2 getName
-
-=cut
-
 sub getName {
-  return $TYPES{+shift}->{name};
-}
-
-=head2 getSubcomponents
-
-=cut
-
-sub getSubcomponents {
-  return grep {$TYPES{+shift}->{subcomponent}} keys %TYPES;
+  return $TYPES{shift}->{name};
 }

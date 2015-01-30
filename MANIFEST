@@ -1,6 +1,7 @@
 Changes
 INSTALL
 lib/WWW/SFDC.pm
+lib/WWW/SFDC/Constants.pm
 lib/WWW/SFDC/SessionManager.pm
 lib/WWW/SFDC/Role/Session.pm
 lib/WWW/SFDC/Manifest.pm

@@ -10,9 +10,6 @@ use WWW::SFDC::SessionManager;
 use Moo;
 with 'MooX::Singleton', 'WWW::SFDC::Role::Session';
 
-use SOAP::Lite readable => 1;
-SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
-
 =head1 NAME
 
 WWW::SFDC::Tooling - Wrapper around SFDC Tooling API
