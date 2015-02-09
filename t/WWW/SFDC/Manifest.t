@@ -131,6 +131,10 @@ my @completeFileListData = ({
   output => [],
   reason => "Blank input should produce blank output"
 },{
+  input => ["staticresources/Logo.resource-meta.xml"],
+  output => ["staticresources/Logo.resource-meta.xml","staticresources/Logo.resource"],
+  reason => "Modifying meta file => deploy actual file too"
+},{
   input => ["objects/foo.object","objects/foo.object"],
   output => ["objects/foo.object"],
   reason => "Deduplication should work"

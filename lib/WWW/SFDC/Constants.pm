@@ -262,7 +262,8 @@ sub getDiskName {
 =cut
 
 sub getName {
-  return $TYPES{+shift}->{name};
+  my $type = shift;
+  return $TYPES{$type}->{name} or die "Type $type doesn't have a name!";
 }
 
 =head2 getSubcomponents

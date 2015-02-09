@@ -61,7 +61,10 @@ sub query {
   my ($self, $query) = @_;
   INFO "Executing SOQL query: ".$query;
 
-  my $result = $self->_call('query', SOAP::Data->name(queryString => $query));
+  my $result = $self->_call(
+    'query',
+    SOAP::Data->name(queryString => $query),
+);
 
   return ref $result->{records} eq 'ARRAY'
     ? map {$self->_cleanUpSObject($_)} @{$result->{records}}

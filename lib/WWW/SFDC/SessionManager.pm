@@ -9,7 +9,7 @@ use Logging::Trivial;
 use Moo;
 with 'MooX::Singleton';
 
-use SOAP::Lite +trace => [debug => \&DEBUG];
+use SOAP::Lite +trace => [debug => sub { DEBUG 'SOAP Request' => shift }];
 
 =head1 NAME
 

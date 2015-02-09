@@ -98,7 +98,7 @@ sub _splitLine {
 sub _getFilesForLine {
   my ($self, $line) = @_;
 
-  return unless $line;
+  return () unless $line;
 
   my %split = %{$self->_splitLine($line)};
 
@@ -193,7 +193,7 @@ sub addList {
 
   return reduce {$a->add($b)} $self, map {
     +{ getName($$_{type}) => [
-      $$_{folder}
+      defined $$_{folder}
       ? (($self->isDeletion ? () : $$_{folder}), "$$_{folder}/$$_{name}")
       : ($$_{name})
      ]}

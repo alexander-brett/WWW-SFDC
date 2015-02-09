@@ -215,6 +215,23 @@ sub deployMetadata {
   #do..until guarantees that sleep() executes at least once.
   do {sleep $self->pollInterval} until $self->_checkDeployment($$result{id});
 
+  return $$result{id};
+
+}
+
+=head2 deployRecentValidation $id
+
+Calls deployRecentValidation with your successfully-validated deployment.
+
+=cut
+
+sub deployRecentValidation {
+  my ($self, $id) = @_;
+
+  return $self->_call(
+    'deployRecentValidation',
+    {validationID => $id}
+   );
 }
 
 1;

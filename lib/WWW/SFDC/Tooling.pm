@@ -106,7 +106,10 @@ sub query {
   my ($self, $query) = @_;
   INFO "Executing SOQL query: ".$query;
 
-  my $result = $self->_call('query', SOAP::Data->name(queryString => $query));
+  my $result = $self->_call(
+    'query',
+    SOAP::Data->name(queryString => $query)
+   );
 
   return map {my %copy = %$_; \%copy; }
     ref $result->{records} eq 'ARRAY' ? @{$result->{records}} : $result->{records}
