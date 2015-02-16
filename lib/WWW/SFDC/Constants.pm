@@ -139,6 +139,10 @@ my %TYPES = (
     ending => ".report",
     folders => 1,
   },
+  roles              => {
+    name => "Role",
+    ending => "role"
+  },
   sites              => {
     name => "CustomSite",
     ending => ".site"
