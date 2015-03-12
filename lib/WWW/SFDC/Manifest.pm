@@ -16,7 +16,7 @@ use Moo;
 has 'manifest', is => 'rw', default => sub { {} };
 has 'isDeletion', is => 'ro';
 has 'srcDir', is => 'rw', default => 'src';
-has 'apiVersion', is => 'rw', default => 31;
+has 'apiVersion', is => 'rw', default => 33;
 
 =head1 NAME
 
@@ -192,6 +192,7 @@ sub addList {
   my $self = shift;
 
   return reduce {$a->add($b)} $self, map {
+    DEBUG "adding..." => $_;
     +{ getName($$_{type}) => [
       defined $$_{folder}
       ? (($self->isDeletion ? () : $$_{folder}), "$$_{folder}/$$_{name}")

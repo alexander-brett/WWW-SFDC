@@ -68,11 +68,12 @@ sub query {
 
   return ref $result->{records} eq 'ARRAY'
     ? map {$self->_cleanUpSObject($_)} @{$result->{records}}
-    : $self->_cleanUpSObject($result->{records});
+    : ( $self->_cleanUpSObject($result->{records}) );
 }
 
 sub _cleanUpSObject {
   my ($self, $obj) = @_;
+  return () unless $obj;
   my %copy = %$obj; # strip the class from $obj
   $copy{Id} = $copy{Id}->[0] if ref $copy{Id} eq "ARRAY";
   return \%copy;
@@ -83,6 +84,9 @@ sub _cleanUpSObject {
     say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->update
       {Id => 'foo', Field__c => 'bar', Name => 'baz'}
       {Id => 'bam', Field__c => 'bas', Name => 'bat'};
+
+
+Returns an array that looks like [{success => 1, id => 'id'}, {}...] with LOWERCASE keys.
 
 =cut
 

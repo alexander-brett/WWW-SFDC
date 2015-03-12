@@ -53,7 +53,7 @@ For more in-depth examples, see t/WWW/SFDC/Metadata.t
 =cut
 
 has 'pollInterval', is => 'rw', default => 20;
-has 'apiVersion', is => 'ro', default => 31;
+has 'apiVersion', is => 'ro', default => 33;
 
 has 'uri',
   is => 'ro',

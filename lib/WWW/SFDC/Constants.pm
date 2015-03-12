@@ -147,6 +147,14 @@ my %TYPES = (
     name => "CustomSite",
     ending => ".site"
   },
+  settings           => {
+    name => "Settings",
+    ending => ".settings",
+  },
+  sharingRules       => {
+    name => "SharingRules",
+    ending => ".sharingRules"
+  },
   staticresources    => {
     name => "StaticResource",
     ending => ".resource",
