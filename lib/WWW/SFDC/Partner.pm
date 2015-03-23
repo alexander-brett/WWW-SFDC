@@ -6,6 +6,7 @@ use warnings;
 
 use Data::Dumper;
 use Logging::Trivial;
+use Scalar::Util 'blessed';
 use WWW::SFDC::SessionManager;
 
 use Moo;
@@ -79,12 +80,57 @@ sub _cleanUpSObject {
   return \%copy;
 }
 
+=head2 create
+
+    say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->update(
+      {type => 'thing', Id => 'foo', Field__c => 'bar', Name => 'baz'}
+      {type => 'otherthing', Id => 'bam', Field__c => 'bas', Name => 'bat'}
+    );
+
+=cut
+
+sub _prepareSObjects {
+  my $self = shift;
+  # prepares an array of objects for an update or insert call by converting
+  # it to an array of SOAP::Data
+
+  DEBUG "objects for operation" => @_;
+
+  return map {
+      my $obj = $_;
+      my @type;
+      if ($obj->{type}) {
+        @type = SOAP::Data->name('type' => $obj->{type});
+        delete $obj->{type};
+      }
+
+      SOAP::Data->name(sObjects => \SOAP::Data->value(
+        @type,
+        map {
+          (blessed ($obj->{$_}) and blessed ($obj->{$_}) eq 'SOAP::Data')
+            ? $obj->{$_}
+            : SOAP::Data->name($_ => $obj->{$_})
+        } keys $obj
+      ))
+    } @_;
+}
+
+
+sub create {
+  my $self = shift;
+
+  return $self->_call(
+    'create',
+    $self->_prepareSObjects(@_)
+   );
+}
+
 =head2 update
 
-    say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->update
-      {Id => 'foo', Field__c => 'bar', Name => 'baz'}
-      {Id => 'bam', Field__c => 'bas', Name => 'bat'};
-
+    say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->update(
+      {type => 'thing', Id => 'foo', Field__c => 'bar', Name => 'baz'}
+      {type => 'otherthing', Id => 'bam', Field__c => 'bas', Name => 'bat'}
+    );
 
 Returns an array that looks like [{success => 1, id => 'id'}, {}...] with LOWERCASE keys.
 
@@ -98,25 +144,13 @@ sub update {
 
   return $self->_call(
     'update',
-    map {
-      my $obj = $_;
-      my @type;
-      if ($obj->{type}) {
-	@type = SOAP::Data->name('type' => $obj->{type});
-	delete $obj->{type};
-      }
-
-      SOAP::Data->name(sObjects => \SOAP::Data->value(
-	@type,
-	map {SOAP::Data->name($_ => $obj->{$_})} keys $obj
-       ))
-      } @_
+    $self->_prepareSObjects(@_)
    );
 }
 
 =head2 setPassword
 
-    WWW::SFDC::Partner->instance()->setPassword Id=>$ID, Password=$newPassword;
+    WWW::SFDC::Partner->instance()->setPassword(Id=>$ID, Password=$newPassword);
 
 =cut
 
