@@ -9,7 +9,7 @@ use Logging::Trivial;
 use Moo;
 with 'MooX::Singleton';
 
-use SOAP::Lite +trace => [debug => sub { DEBUG 'SOAP Request' => shift }];
+use SOAP::Lite +trace => [debug => sub { DEBUG 'SOAP Request' => shift }], readable => 1;
 
 =head1 NAME
 
@@ -52,7 +52,7 @@ has 'url',
 has 'apiVersion',
   is => 'ro',
   isa => sub { ERROR "The API version must be >= 31" unless $_[0] >= 31},
-  default => '31.0';
+  default => '33.0';
 
 has 'loginResult',
   is => 'rw',

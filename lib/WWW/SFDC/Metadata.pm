@@ -12,7 +12,6 @@ use Moo;
 with "MooX::Singleton", "WWW::SFDC::Role::Session";
 
 use SOAP::Lite;
-SOAP::Lite->import( +trace => [qw(debug)]) if DEBUG;
 
 =head1 NAME
 
