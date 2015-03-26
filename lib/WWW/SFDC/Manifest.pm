@@ -183,8 +183,7 @@ sub add {
 
 =item addList($isDeletion, @list)
 
-Creates a list of components, sorted by type, suitable for turning
-into a manifest file
+Adds a list of components or file paths to the manifest file.
 
 =cut
 
