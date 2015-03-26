@@ -71,7 +71,7 @@ Accepts a list of types and folders, such as
    {type => "CustomObject"},
    {type => "Report", folder => "FooReports"}
 
-and generates a manifest structure suitable for passing into retrieveMetadata().
+and generates a list of file names suitable for turning into a WWW::SFDC::Manifest.
 
 =cut
 
@@ -81,15 +81,15 @@ sub listMetadata {
 
   INFO "Listing Metadata...\t";
 
-  my %result;
+  my @result;
   my @queryData = map {SOAP::Data->new(name => "queries", value => $_)} @_;
 
   # listMetadata can only handle 3 requests at a time, so we chunk them.
   while (my @items = splice @queryData, 0, 3) {
-    push @{ $result{$$_{type}} }, $$_{fullName} for $self->_call('listMetadata', @items);
+    push @result, $$_{fileName} for $self->_call('listMetadata', @items);
   }
 
-  return \%result;
+  return @result;
 }
 
 =head2 retrieveMetadata $manifest
