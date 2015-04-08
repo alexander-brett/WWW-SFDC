@@ -227,9 +227,11 @@ Calls deployRecentValidation with your successfully-validated deployment.
 sub deployRecentValidation {
   my ($self, $id) = @_;
 
+  chomp $id;
+
   return $self->_call(
     'deployRecentValidation',
-    {validationID => $id}
+    SOAP::Data->name(validationID => $id)
    );
 }
 
