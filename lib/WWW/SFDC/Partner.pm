@@ -10,7 +10,7 @@ use Scalar::Util 'blessed';
 use WWW::SFDC::SessionManager;
 
 use Moo;
-with "MooX::Singleton", "WWW::SFDC::Role::Session";
+with "MooX::Singleton", "WWW::SFDC::Role::Session", "WWW::SFDC::Role::CRUD";
 
 use SOAP::Lite;
 
@@ -51,43 +51,6 @@ has 'uri',
 
 sub _extractURL { return $_[1]->{serverUrl} }
 
-=head2 query
-
-    say $_->{Id} for WWW::SFDC::Partner->instance()->query($queryString);
-
-=cut
-
-sub query {
-  my ($self, $query) = @_;
-  INFO "Executing SOQL query: ".$query;
-
-  my $result = $self->_call(
-    'query',
-    SOAP::Data->name(queryString => $query),
-);
-
-  return ref $result->{records} eq 'ARRAY'
-    ? map {$self->_cleanUpSObject($_)} @{$result->{records}}
-    : ( $self->_cleanUpSObject($result->{records}) );
-}
-
-sub _cleanUpSObject {
-  my ($self, $obj) = @_;
-  return () unless $obj;
-  my %copy = %$obj; # strip the class from $obj
-  $copy{Id} = $copy{Id}->[0] if ref $copy{Id} eq "ARRAY";
-  return \%copy;
-}
-
-=head2 create
-
-    say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->update(
-      {type => 'thing', Id => 'foo', Field__c => 'bar', Name => 'baz'}
-      {type => 'otherthing', Id => 'bam', Field__c => 'bas', Name => 'bat'}
-    );
-
-=cut
-
 sub _prepareSObjects {
   my $self = shift;
   # prepares an array of objects for an update or insert call by converting
@@ -112,39 +75,6 @@ sub _prepareSObjects {
         } keys $obj
       ))
     } @_;
-}
-
-
-sub create {
-  my $self = shift;
-
-  return $self->_call(
-    'create',
-    $self->_prepareSObjects(@_)
-   );
-}
-
-=head2 update
-
-    say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->update(
-      {type => 'thing', Id => 'foo', Field__c => 'bar', Name => 'baz'}
-      {type => 'otherthing', Id => 'bam', Field__c => 'bas', Name => 'bat'}
-    );
-
-Returns an array that looks like [{success => 1, id => 'id'}, {}...] with LOWERCASE keys.
-
-=cut
-
-sub update {
-  my $self = shift;
-
-  DEBUG "Objects for update" => @_;
-  INFO "Updating objects";
-
-  return $self->_call(
-    'update',
-    $self->_prepareSObjects(@_)
-   );
 }
 
 =head2 setPassword

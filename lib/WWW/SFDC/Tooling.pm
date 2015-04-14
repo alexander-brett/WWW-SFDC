@@ -7,8 +7,10 @@ use warnings;
 use Logging::Trivial;
 use WWW::SFDC::SessionManager;
 
+use Scalar::Util 'blessed';
+
 use Moo;
-with 'MooX::Singleton', 'WWW::SFDC::Role::Session';
+with 'MooX::Singleton', 'WWW::SFDC::Role::Session', 'WWW::SFDC::Role::CRUD';
 
 =head1 NAME
 
@@ -48,8 +50,31 @@ sub _extractURL {
 
 =cut
 
-sub create {
-  ...
+sub _prepareSObjects {
+  my $self = shift;
+  # prepares an array of objects for an update or insert call by converting
+  # it to an array of SOAP::Data
+
+  # THIS IMPLEMENTATION IS DIFFERENT TO THE EQUIVALENT PARTNER API IMPLEMENTATION
+
+  DEBUG "objects for operation" => @_;
+
+  return map {
+      my $obj = $_;
+      my $type;
+      if ($obj->{type}) {
+        $type = $obj->{type};
+        delete $obj->{type};
+      }
+
+      SOAP::Data->name(sObjects => \SOAP::Data->value(
+        map {
+          (blessed ($obj->{$_}) and blessed ($obj->{$_}) eq 'SOAP::Data')
+            ? $obj->{$_}
+            : SOAP::Data->name($_ => $obj->{$_})
+        } keys $obj
+      ))->type($type)
+    } @_;
 }
 
 =head2 delete
@@ -102,21 +127,7 @@ sub executeAnonymous {
 
 =cut
 
-sub query {
-  my ($self, $query) = @_;
-  INFO "Executing SOQL query: ".$query;
 
-  my $result = $self->_call(
-    'query',
-    SOAP::Data->name(queryString => $query)
-   );
-
-  return map {my %copy = %$_; \%copy; }
-    ref $result->{records} eq 'ARRAY' ? @{$result->{records}} : $result->{records}
-    if defined $result->{records};
-
-  return undef;
-}
 
 =head2 retrieve
 
@@ -128,10 +139,17 @@ sub retrieve {
 
 =head2 runTests
 
+  SFDC::Tooling->instance()->runTests('name','name2');
+
 =cut
 
 sub runTests {
-  ...
+  my ($self, @names) = @_;
+
+  return $self->_call(
+    'runTests',
+    map {\SOAP::Data->name(classes => $_)} @names
+    );
 }
 
 =head2 runTestsAsynchronous
@@ -142,14 +160,6 @@ sub runTestsAsynchronous {
   my ($self, @ids) = @_;
 
   return $self->_call('runTestsAsynchronous', join ",", @ids);
-}
-
-=head2 update
-
-=cut
-
-sub update {
-  ...
 }
 
 =head2 upsert
