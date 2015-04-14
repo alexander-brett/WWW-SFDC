@@ -164,6 +164,10 @@ my %TYPES = (
     name => "CustomTab",
     ending => ".tab"
   },
+  translations       => {
+    name => "Translations",
+    ending => ".translation",
+  },
   triggers           => {
     name => "ApexTrigger",
     ending => ".trigger",
