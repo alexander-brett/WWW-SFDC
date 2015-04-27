@@ -57,7 +57,7 @@ sub _prepareSObjects {
 
   # THIS IMPLEMENTATION IS DIFFERENT TO THE EQUIVALENT PARTNER API IMPLEMENTATION
 
-  DEBUG "objects for operation" => @_;
+  DETAIL "objects for operation" => \@_;
 
   return map {
       my $obj = $_;
@@ -75,14 +75,6 @@ sub _prepareSObjects {
         } keys $obj
       ))->type($type)
     } @_;
-}
-
-=head2 delete
-
-=cut
-
-sub delete {
-  ...
 }
 
 =head2 describeGlobal
@@ -149,7 +141,7 @@ sub runTests {
   return $self->_call(
     'runTests',
     map {\SOAP::Data->name(classes => $_)} @names
-    );
+  );
 }
 
 =head2 runTestsAsynchronous
@@ -217,8 +209,3 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
-
-
-=cut
-
-1; # End of WWW::SFDC::Tooling
