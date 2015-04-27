@@ -196,6 +196,8 @@ sub _checkDeployment {
   return 1 if $$result{status} eq "Succeeded";
   return undef if $$result{status} =~ /Queued|Pending|InProgress/;
   # useful deployment error here please
+  ERROR "DEPLOYMENT FAILED: ".Dumper $result->{details}->{componentFailures}
+    if $result->{status} eq "Failed";
   ERROR "Check Deploy had an unexpected result: ".Dumper $result;
 }
 
