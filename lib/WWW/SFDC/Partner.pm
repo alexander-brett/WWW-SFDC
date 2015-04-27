@@ -41,10 +41,6 @@ our $VERSION = '0.1';
 
 =cut
 
-has 'pollInterval',
-  is => 'rw',
-  default => 10;
-
 has 'uri',
   is => 'ro',
   default => "urn:partner.soap.sforce.com";
@@ -56,7 +52,7 @@ sub _prepareSObjects {
   # prepares an array of objects for an update or insert call by converting
   # it to an array of SOAP::Data
 
-  DEBUG "objects for operation" => @_;
+  DETAIL "objects for operation" => \@_;
 
   return map {
       my $obj = $_;
