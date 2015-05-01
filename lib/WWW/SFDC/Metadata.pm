@@ -117,8 +117,8 @@ sub _startRetrieval {
   my @queryData = map {
     SOAP::Data->name (
       types => \SOAP::Data->value(
-	map {SOAP::Data->name(members => $_) } @{ $$manifest{$_} },
-	SOAP::Data->name(name => $_ )
+      	map {SOAP::Data->name(members => $_) } @{ $$manifest{$_} },
+      	SOAP::Data->name(name => $_ )
        )
      )
     } keys %$manifest;
@@ -128,9 +128,9 @@ sub _startRetrieval {
     'retrieve',
     SOAP::Data->name(
       retrieveRequest => {
-	# a lower value than 31 means no status is retrieved, causing an error.
-	apiVersion => $self->apiVersion(),
-	unpackaged => \SOAP::Data->value(@queryData)
+      	# a lower value than 31 means no status is retrieved, causing an error.
+      	apiVersion => $self->apiVersion(),
+      	unpackaged => \SOAP::Data->value(@queryData)
       })
    )->{id};
 
@@ -166,7 +166,7 @@ sub retrieveMetadata {
 
   my $result;
 
-  do { sleep $self->pollInterval } until $result = $self->_checkRetrieval($requestId);
+  do { $self->_sleep() } until $result = $self->_checkRetrieval($requestId);
 
   return $result;
 }
@@ -186,7 +186,7 @@ sub _checkDeployment {
   my ($self, $id) = @_;
   ERROR "No ID was passed in" unless $id;
 
-  my $result = $self->_call(
+  my ($result) = $self->_call(
     'checkDeployStatus',
     SOAP::Data->name("id" => $id),
     SOAP::Data->name("includeDetails" => "true")
@@ -204,7 +204,7 @@ sub _checkDeployment {
 sub deployMetadata {
   my ($self, $zip, $deployOptions) = @_;
 
-  my $result = $self->_call(
+  my ($result) = $self->_call(
     'deploy',
     SOAP::Data->name( zipfile => $zip),
     ($deployOptions ? SOAP::Data->name(DeployOptions=>$deployOptions) : ())
@@ -213,7 +213,7 @@ sub deployMetadata {
   INFO "Deployment status:\t".$$result{state};
 
   #do..until guarantees that sleep() executes at least once.
-  do {sleep $self->pollInterval} until $self->_checkDeployment($$result{id});
+  do {$self->_sleep()} until $self->_checkDeployment($$result{id});
 
   return $$result{id};
 

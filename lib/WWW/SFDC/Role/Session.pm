@@ -71,10 +71,16 @@ sub _buildURL {
 
 sub _call {
   my $self = shift;
-
   my $req = WWW::SFDC::SessionManager->instance()->call($self->url(), $self->uri(), @_);
 
-  return defined $req->paramsout() ? ($req->result(),$req->paramsout()): $req->result();
+  return $req->result(),
+    (defined $req->paramsout() ? $req->paramsout() : ()),
+    (defined $req->headers() ? $req->headers() : ());
+}
+
+sub _sleep {
+  my $self = shift;
+  sleep $self->pollInterval;
 }
 
 1;

@@ -143,7 +143,7 @@ sub makezip {
     or ERROR "zip failed: $ZipError";
 
   eval {
-    open my $FH, '>', 'lib/temp/data_perl.zip' or die;
+    open my $FH, '>', 'data_perl.zip' or die;
     binmode $FH;
     print $FH $result;
     close $FH;

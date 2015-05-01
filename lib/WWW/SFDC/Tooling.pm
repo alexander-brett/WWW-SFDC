@@ -100,10 +100,13 @@ sub describeSObjects {
 =cut
 
 sub executeAnonymous {
-  my ($self, $code) = @_;
+  my ($self, $code, %options) = @_;
   my $result = $self->_call(
     'executeAnonymous',
-    SOAP::Data->name(string => $code)
+    SOAP::Data->name(string => $code),
+    $options{debug} ? SOAP::Header->name('DebuggingHeader' => \SOAP::Data->name(
+        debugLevel => 'DEBUGONLY'
+      )) : (),
    );
 
   ERROR "ExecuteAnonymous failed to compile: " . $result->{compileProblem}
@@ -113,20 +116,6 @@ sub executeAnonymous {
     if $result->{success} eq "false";
 
   return $result;
-}
-
-=head2 query
-
-=cut
-
-
-
-=head2 retrieve
-
-=cut
-
-sub retrieve {
-  ...
 }
 
 =head2 runTests

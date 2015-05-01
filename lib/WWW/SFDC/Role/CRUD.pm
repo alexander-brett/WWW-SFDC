@@ -197,6 +197,18 @@ sub undelete {
     );
 }
 
+sub retrieve {
+    my $self = shift;
+
+    DEBUG "IDs for retrieve" => \@_;
+    INFO "Retrieving objects";
+
+    return $self->_call(
+        'retrieve',
+        map {SOAP::Data->name('ids' => $_)} @_
+    );
+}
+
 1;
 
 __END__

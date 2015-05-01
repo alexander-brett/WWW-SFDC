@@ -51,7 +51,7 @@ has 'url',
 
 has 'apiVersion',
   is => 'ro',
-  isa => sub { ERROR "The API version must be >= 31" unless $_[0] >= 31},
+  isa => sub { ERROR "The API version must be >= 31" unless $_[0] and $_[0] >= 31},
   default => '33.0';
 
 has 'loginResult',
@@ -91,14 +91,14 @@ sub _doCall {
   INFO "Starting $stuff[0] request";
 
   return SOAP::Lite
-    ->proxy($URL)
+    ->proxy($URL, timeout => 300)
     ->readable(1)
     ->default_ns($NS)
     ->call(
+      @stuff,
       SOAP::Header->name("SessionHeader" => {
-	"sessionId" => $self->loginResult()->{"sessionId"}
-      })->uri($NS),
-      @stuff
+        "sessionId" => $self->loginResult()->{"sessionId"}
+      })->uri($NS)
      );
 }
 
@@ -145,7 +145,7 @@ Please report any bugs or feature requests at L<https://github.com/alexander-bre
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc WWW::SFDC::Login
+    perldoc WWW::SFDC::SessionManager
 
 You can also look for information at L<https://github.com/alexander-brett/WWW-SFDC>
 
