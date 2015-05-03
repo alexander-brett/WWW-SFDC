@@ -22,8 +22,12 @@ WriteMakefile(
       'Test::More' => 0,
     },
     PREREQ_PM => {
+      'IO::Compress::Zip' => 0,
+      'IO::Uncompress::Unzip' => 0,
+      'List::NSect' => 0,
       'Logging::Trivial' => 0,
       'Moo' => 0,
+      'Moo::Role' => 0,
       'MooX::Singleton' => 0,
       'SOAP::Lite' => 0,
       'XML::Parser' => 0,
