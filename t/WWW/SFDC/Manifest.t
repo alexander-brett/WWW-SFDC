@@ -217,14 +217,14 @@ my @writeXMLdata = ({
   input => {
     "Document" => ["bar","bar/foo.png"]
   },
-  output =>  q(<?xml version='1.0' encoding='UTF-8'?><Package xmlns='http://soap.sforce.com/2006/04/metadata'><types><name>Document</name><members>bar</members><members>bar/foo.png</members></types><version>31</version></Package>),
+  output =>  q(<?xml version='1.0' encoding='UTF-8'?><Package xmlns='http://soap.sforce.com/2006/04/metadata'><types><name>Document</name><members>bar</members><members>bar/foo.png</members></types><version>33</version></Package>),
   reason => "Writing XML for a single type"
 },{
   input => {
     "Document" => ["bar","bar/foo.png"],
     "ApexClass" => ["baz"]
   },
-  output => q{<?xml version='1.0' encoding='UTF-8'?><Package xmlns='http://soap.sforce.com/2006/04/metadata'><types><name>ApexClass</name><members>baz</members></types><types><name>Document</name><members>bar</members><members>bar/foo.png</members></types><version>31</version></Package>},
+  output => q{<?xml version='1.0' encoding='UTF-8'?><Package xmlns='http://soap.sforce.com/2006/04/metadata'><types><name>ApexClass</name><members>baz</members></types><types><name>Document</name><members>bar</members><members>bar/foo.png</members></types><version>33</version></Package>},
   reason => "Passing in multiple types",
 });
 

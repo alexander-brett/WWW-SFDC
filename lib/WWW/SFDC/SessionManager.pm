@@ -47,8 +47,8 @@ has 'password',
 
 has 'url',
   is => 'ro',
-  isa => sub { $_[0] =~ s/\/$// or 1; }, #remove trailing slash
-  default => "https://test.salesforce.com";
+  default => "https://test.salesforce.com",
+  isa => sub { $_[0] and $_[0] =~ s/\/$// or 1; }; #remove trailing slash
 
 has 'apiVersion',
   is => 'ro',
