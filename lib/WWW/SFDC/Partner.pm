@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use Logging::Trivial;
+use Log::Log4perl ':easy';
 use Scalar::Util 'blessed';
 use WWW::SFDC::SessionManager;
 
@@ -52,7 +52,7 @@ sub _prepareSObjects {
   # prepares an array of objects for an update or insert call by converting
   # it to an array of SOAP::Data
 
-  DETAIL "objects for operation" => \@_;
+  TRACE "objects for operation", Dumper \@_;
 
   return map {
       my $obj = $_;
@@ -81,7 +81,7 @@ sub _prepareSObjects {
 
 sub setPassword {
   my ($self, %params) = @_;
-  ERROR "You must provide an Id and Password" unless $params{Id} and $params{Password};
+  LOGDIE "You must provide an Id and Password" unless $params{Id} and $params{Password};
   INFO "Setting password for user $params{Id}";
   return $self->_call(
     'setPassword',

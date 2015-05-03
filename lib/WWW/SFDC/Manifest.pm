@@ -8,7 +8,7 @@ use XML::Parser;
 use Scalar::Util qw(blessed);
 use List::Util qw'first reduce pairmap pairgrep pairfirst';
 use Data::Dumper;
-use Logging::Trivial;
+use Log::Log4perl ':easy';
 use WWW::SFDC::Constants qw(needsMetaFile hasFolders getEnding getDiskName getName);
 
 use Moo;
@@ -56,7 +56,7 @@ and get a structure suitable for passing into WWW::SFDC::Metadata functions.
 sub _splitLine {
   my ($self, $line) = @_;
 
-  ERROR "No line!" unless $line;
+  LOGDIE "No line!" unless $line;
 
   # clean up the line
   $line =~ s/.*src\///;
@@ -64,7 +64,7 @@ sub _splitLine {
 
   my %result = ("extension" => "");
 
-  ($result{"type"}) = $line =~ /^(\w+)\// or ERROR "Line $line doesn't have a type.";
+  ($result{"type"}) = $line =~ /^(\w+)\// or LOGDIE "Line $line doesn't have a type.";
   $result{"folder"} = $1 if $line =~ /\/(\w+)\//;
 
   my $extension = getEnding($result{"type"});
@@ -80,7 +80,7 @@ sub _splitLine {
     $result{"extension"} = $2;
   }
 
-  ERROR "Line $line doesn't have a name." unless $result{"name"};
+  LOGDIE "Line $line doesn't have a name." unless $result{"name"};
 
   return \%result;
 }
@@ -191,7 +191,7 @@ sub addList {
   my $self = shift;
 
   return reduce {$a->add($b)} $self, map {
-    DEBUG "adding..." => $_;
+    DEBUG "Adding $_ to manifest";
     +{ getName($$_{type}) => [
       defined $$_{folder}
       ? (($self->isDeletion ? () : $$_{folder}), "$$_{folder}/$$_{name}")

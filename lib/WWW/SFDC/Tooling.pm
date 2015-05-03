@@ -4,7 +4,7 @@ use 5.12.0;
 use strict;
 use warnings;
 
-use Logging::Trivial;
+use Log::Log4perl ':easy';
 use WWW::SFDC::SessionManager;
 
 use Scalar::Util 'blessed';
@@ -57,7 +57,7 @@ sub _prepareSObjects {
 
   # THIS IMPLEMENTATION IS DIFFERENT TO THE EQUIVALENT PARTNER API IMPLEMENTATION
 
-  DETAIL "objects for operation" => \@_;
+  TRACE "objects for operation" => \@_;
 
   return map {
       my $obj = $_;
@@ -109,10 +109,10 @@ sub executeAnonymous {
       )) : (),
    );
 
-  ERROR "ExecuteAnonymous failed to compile: " . $result->{compileProblem}
+  LOGDIE "ExecuteAnonymous failed to compile: " . $result->{compileProblem}
     if $result->{compiled} eq "false";
 
-  ERROR "ExecuteAnonymous failed to complete: " . $result->{exceptionMessage}
+  LOGDIE "ExecuteAnonymous failed to complete: " . $result->{exceptionMessage}
     if $result->{success} eq "false";
 
   return $result;

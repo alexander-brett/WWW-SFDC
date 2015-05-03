@@ -11,7 +11,7 @@ use IO::Uncompress::Unzip qw($UnzipError);
 use File::Path qw(mkpath);
 use IO::Compress::Zip qw{$ZipError zip :constants};
 
-use Logging::Trivial;
+use Log::Log4perl ':easy';
 
 =head1 NAME
 
@@ -70,11 +70,11 @@ sub unzip {
   my ($dest, $data, $callback) = @_;
   INFO "Unzipping files to $dest";
   DEBUG "Data to unzip" => $data;
-  ERROR "No destination!" unless $dest;
+  LOGDIE "No destination!" unless $dest;
 
   $data = decode_base64 $data;
   my $unzipper = IO::Uncompress::Unzip->new(\$data)
-    or ERROR "Couldn't unzip data";
+    or LOGDIE "Couldn't unzip data";
 
   my $status;
 
@@ -84,7 +84,7 @@ sub unzip {
     $folder =~ s/unpackaged/$dest/;
 
     # create folder on disk unless it exists already
-    mkpath($folder) or ERROR "Couldn't mkdir $folder: $!" unless -d $folder;
+    mkpath($folder) or LOGDIE "Couldn't mkdir $folder: $!" unless -d $folder;
 
     # skip if the file is a folder, exit on error
     $status < 0 ? last : next if $name =~ /\/$/;
@@ -100,13 +100,13 @@ sub unzip {
 
     if ($content) {
       # open target for writing
-      my $fh = IO::File->new($path, "w") or ERROR "Couldn't write to $path: $!";
+      my $fh = IO::File->new($path, "w") or LOGDIE "Couldn't write to $path: $!";
       $fh->binmode();
       $fh->write($content);
       $fh->close();
       # update time on target
       my $stored_time = $header->{'Time'};
-      utime ($stored_time, $stored_time, $path) or ERROR "Couldn't touch $path: $!";
+      utime ($stored_time, $stored_time, $path) or LOGDIE "Couldn't touch $path: $!";
     }
   } until ($status = $unzipper->nextStream()) < 1;
 
@@ -124,7 +124,7 @@ sub makezip {
   my ($baseDir, @files) = @_;
   INFO "Writing zip file with ". scalar(@files) ." files";
   DEBUG "File list before grep" => \@files;
-  ERROR "No files!" unless scalar @files;
+  LOGDIE "No files!" unless scalar @files;
 
   @files = grep {-e $_ && !-d $_}
     map {$baseDir.$_}
@@ -140,7 +140,7 @@ sub makezip {
     Level => 9,
     Minimal => 1,
     BinModeIn => 1,
-    or ERROR "zip failed: $ZipError";
+    or LOGDIE "zip failed: $ZipError";
 
   eval {
     open my $FH, '>', 'data_perl.zip' or die;

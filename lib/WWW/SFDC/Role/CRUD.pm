@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 use List::NSect 'spart';
-use Logging::Trivial;
+use Log::Log4perl ':easy';
 use Moo::Role;
 use Scalar::Util 'blessed';
 use SOAP::Lite;
@@ -148,7 +148,7 @@ Returns an array that looks like [{success => 1, id => 'id'}, {}...] with LOWERC
 sub update {
   my $self = shift;
 
-  DETAIL "Objects for update" => \@_;
+  TRACE "Objects for update" => \@_;
   INFO "Updating objects";
 
   return $self->_call(

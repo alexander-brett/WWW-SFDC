@@ -16,7 +16,6 @@ WriteMakefile(
     },
     BUILD_REQUIRES => {
       'File::Slurp' => 0,
-      'Logging::Trivial' => 0,
       'Test::Exception' => 0,
       'Config::Properties' => 0,
       'Test::More' => 0,
@@ -25,7 +24,7 @@ WriteMakefile(
       'IO::Compress::Zip' => 0,
       'IO::Uncompress::Unzip' => 0,
       'List::NSect' => 0,
-      'Logging::Trivial' => 0,
+      'Log::Log4Perl' => 0,
       'Moo' => 0,
       'Moo::Role' => 0,
       'MooX::Singleton' => 0,

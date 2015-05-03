@@ -3,6 +3,7 @@ package WWW::SFDC::Constants;
 use 5.12.0;
 use strict;
 use warnings;
+use Log::Log4perl ':easy';
 
 use List::Util 'first';
 
@@ -279,7 +280,7 @@ sub getDiskName {
 
 sub getName {
   my $type = shift;
-  return $TYPES{$type}->{name} or die "Type $type doesn't have a name!";
+  return $TYPES{$type}->{name} or LOGDIE "Type $type doesn't have a name!";
 }
 
 =head2 getSubcomponents

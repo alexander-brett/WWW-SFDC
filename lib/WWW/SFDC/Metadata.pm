@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use Logging::Trivial;
+use Log::Log4perl ':easy';
 use WWW::SFDC::SessionManager;
 
 use Moo;
@@ -108,7 +108,7 @@ same data as checkRetrieval. Requires a manifest of the form:
 # returns just the id, for checking later. Accepts a manifest.
 
 sub _startRetrieval {
-  INFO "Starting retrieval\n";
+  INFO "Starting retrieval";
 
   my ($self, $manifest) = @_;
 
@@ -142,7 +142,7 @@ sub _startRetrieval {
 
 sub _checkRetrieval {
   my ($self, $id) = @_;
-  ERROR "No ID was passed in!" unless $id;
+  LOGDIE "No ID was passed in!" unless $id;
 
   my $result = $self->_call(
     'checkRetrieveStatus',
@@ -153,14 +153,14 @@ sub _checkRetrieval {
 
   return $result->{zipFile} if $$result{status} eq "Succeeded";
   return undef if $$result{status} =~ /Pending|InProgress/;
-  ERROR "Check Retrieve had an unexpected result: ".$$result{message};
+  LOGDIE "Check Retrieve had an unexpected result: ".$$result{message};
 }
 
 
 sub retrieveMetadata {
 
   my ($self, $manifest) = @_;
-  ERROR "This method must be called with a manifest" unless $manifest;
+  LOGDIE "This method must be called with a manifest" unless $manifest;
 
   my $requestId = $self->_startRetrieval($manifest);
 
@@ -184,7 +184,7 @@ guide for a description.
 #Check up on an async deployment request. Returns 1 when complete.
 sub _checkDeployment {
   my ($self, $id) = @_;
-  ERROR "No ID was passed in" unless $id;
+  LOGDIE "No ID was passed in" unless $id;
 
   my ($result) = $self->_call(
     'checkDeployStatus',
@@ -196,9 +196,9 @@ sub _checkDeployment {
   return 1 if $$result{status} eq "Succeeded";
   return undef if $$result{status} =~ /Queued|Pending|InProgress/;
   # useful deployment error here please
-  ERROR "DEPLOYMENT FAILED: ".Dumper $result->{details}->{componentFailures}
+  LOGDIE "DEPLOYMENT FAILED: ".Dumper $result->{details}->{componentFailures}
     if $result->{status} eq "Failed";
-  ERROR "Check Deploy had an unexpected result: ".Dumper $result;
+  LOGDIE "Check Deploy had an unexpected result: ".Dumper $result;
 }
 
 sub deployMetadata {

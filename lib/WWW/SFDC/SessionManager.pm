@@ -4,7 +4,8 @@ use 5.12.0;
 use strict;
 use warnings;
 
-use Logging::Trivial;
+use Data::Dumper;
+use Log::Log4perl ':easy';
 
 use Moo;
 with 'MooX::Singleton';
@@ -51,7 +52,7 @@ has 'url',
 
 has 'apiVersion',
   is => 'ro',
-  isa => sub { ERROR "The API version must be >= 31" unless $_[0] and $_[0] >= 31},
+  isa => sub { LOGDIE "The API version must be >= 31" unless $_[0] and $_[0] >= 31},
   default => '33.0';
 
 has 'loginResult',
@@ -75,8 +76,8 @@ sub _login {
       SOAP::Data->name("password")->value($self->password())
      );
 
-  DETAIL "request" => $request;
-  ERROR "Login Failed: ".$request->faultstring if $request->fault;
+  TRACE "request " => Dumper $request;
+  LOGDIE "Login Failed: ".$request->faultstring if $request->fault;
   return $request->result();
 }
 
@@ -111,8 +112,8 @@ sub call {
     $req = $self->_doCall(@_);
   }
 
-  DETAIL "Operation request" => $req;
-  ERROR "$_[0] Failed: " . $req->faultstring if $req->fault;
+  TRACE "Operation request " => Dumper $req;
+  LOGDIE "$_[0] Failed: " . $req->faultstring if $req->fault;
 
   return $req;
 };

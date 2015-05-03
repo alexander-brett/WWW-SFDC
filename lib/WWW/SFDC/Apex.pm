@@ -6,7 +6,7 @@ use 5.12.0;
 use strict;
 use warnings;
 
-use Logging::Trivial;
+use Log::Log4perl ':easy';
 use WWW::SFDC::SessionManager;
 
 use Moo;
@@ -61,11 +61,12 @@ sub executeAnonymous {
       ))->uri($self->uri) : (),
    );
 
-  ERROR "ExecuteAnonymous failed to compile: " . $result->{compileProblem}
+  
+  LOGDIE "ExecuteAnonymous failed to compile: " . $result->{compileProblem}
     if $result->{compiled} eq "false";
 
-  ERROR "ExecuteAnonymous failed to complete: " . $result->{exceptionMessage}
-    if $result->{success} eq "false";
+  LOGDIE "ExecuteAnonymous failed to complete: " . $result->{exceptionMessage}
+    if ($result->{success} eq "false");
 
   return $result, (defined $headers ? $headers->{debugLog} : ());
 }
