@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Moo::Role;
+use Module::Loaded;
 
 use WWW::SFDC::SessionManager;
 

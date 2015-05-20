@@ -124,7 +124,7 @@ sub _startRetrieval {
     } keys %$manifest;
 
 
-  return $self->_call(
+  return ($self->_call(
     'retrieve',
     SOAP::Data->name(
       retrieveRequest => {
@@ -132,7 +132,7 @@ sub _startRetrieval {
       	apiVersion => $self->apiVersion(),
       	unpackaged => \SOAP::Data->value(@queryData)
       })
-   )->{id};
+   ) )[0]->{id};
 
 }
 
@@ -144,7 +144,7 @@ sub _checkRetrieval {
   my ($self, $id) = @_;
   LOGDIE "No ID was passed in!" unless $id;
 
-  my $result = $self->_call(
+  my ($result) = $self->_call(
     'checkRetrieveStatus',
     SOAP::Data->name("asyncProcessId" => $id)
    );

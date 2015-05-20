@@ -56,7 +56,7 @@ and get a structure suitable for passing into WWW::SFDC::Metadata functions.
 sub _splitLine {
   my ($self, $line) = @_;
 
-  LOGDIE "No line!" unless $line;
+  LOGDIE "Called _splitLine with no argument!" unless $line;
 
   # clean up the line
   $line =~ s/.*src\///;
@@ -64,8 +64,10 @@ sub _splitLine {
 
   my %result = ("extension" => "");
 
-  ($result{"type"}) = $line =~ /^(\w+)\// or LOGDIE "Line $line doesn't have a type.";
-  $result{"folder"} = $1 if $line =~ /\/(\w+)\//;
+  ($result{"type"}) = $line =~ /^(\w+)\//
+    or LOGDIE "Line $line doesn't have a type.";
+  $result{"folder"} = $1
+    if $line =~ /\/(\w+)\//;
 
   my $extension = getEnding($result{"type"});
 
@@ -153,9 +155,9 @@ sub getFileList {
 
     map {
       if (hasFolders($type) and $_ !~ /\//) {
-	"$type/$_-meta.xml";
+        "$type/$_-meta.xml";
       } else {
-	"$type/$_$ending", (needsMetaFile($type) ? "$type/$_$ending-meta.xml" : () );
+	      "$type/$_$ending", (needsMetaFile($type) ? "$type/$_$ending-meta.xml" : () );
       }
     } @{ $self->manifest->{$_} }
   } keys %{$self->manifest};
@@ -190,11 +192,16 @@ sub addList {
 
   return reduce {$a->add($b)} $self, map {
     DEBUG "Adding $_ to manifest";
-    +{ getName($$_{type}) => [
-      defined $$_{folder}
-      ? (($self->isDeletion ? () : $$_{folder}), "$$_{folder}/$$_{name}")
-      : ($$_{name})
-     ]}
+    +{
+      getName($$_{type}) => [
+        defined $$_{folder}
+          ? (
+              ($self->isDeletion ? () : $$_{folder}),
+              "$$_{folder}/$$_{name}"
+            )
+          : ($$_{name})
+      ]
+    }
   } map {$self->_splitLine($_)} @_;
 }
 
@@ -230,7 +237,7 @@ the manifest object.
 
 sub writeToFile {
   my ($self, $fileName) = @_;
-  open my $fh, ">", $fileName;
+  open my $fh, ">", $fileName or LOGDIE "Couldn't open $fileName to write manifest to disk";
   print $fh $self->getXML();
   return $self;
 }
@@ -248,10 +255,10 @@ sub getXML {
     "<Package xmlns='http://soap.sforce.com/2006/04/metadata'>",
     (
       map {(
-	"<types>",
-	"<name>$_</name>",
-	( map {"<members>$_</members>"} @{$self->manifest->{$_}} ),
-	"</types>",
+      	"<types>",
+      	"<name>$_</name>",
+      	( map {"<members>$_</members>"} @{$self->manifest->{$_}} ),
+      	"</types>",
        )} sort keys %{$self->manifest}
      ),
     "<version>",$self->apiVersion,"</version></Package>"
