@@ -4,14 +4,14 @@ use 5.12.0;
 use strict;
 use warnings;
 
-use MIME::Base64;
+use Data::Dumper;
+use File::Path qw(mkpath);
 use File::Spec::Functions qw(splitpath);
+use IO::Compress::Zip qw{$ZipError zip :constants};
 use IO::File;
 use IO::Uncompress::Unzip qw($UnzipError);
-use File::Path qw(mkpath);
-use IO::Compress::Zip qw{$ZipError zip :constants};
-
 use Log::Log4perl ':easy';
+use MIME::Base64;
 
 =head1 NAME
 
@@ -122,15 +122,18 @@ given. Replaces unpackaged/ with $options{basedir} if set.
 
 sub makezip {
   my ($baseDir, @files) = @_;
-  INFO "Writing zip file with ". scalar(@files) ." files";
-  DEBUG "File list before grep" => \@files;
-  LOGDIE "No files!" unless scalar @files;
+
+  TRACE "File list before grep: " . Dumper \@files;
+  LOGDIE "It is invalid to call makezip with no files." unless scalar @files;
+
+  $baseDir =~ s{(?<![/\\])$}{/};
 
   @files = grep {-e $_ && !-d $_}
     map {$baseDir.$_}
     @files;
 
-  DEBUG "File list after grep" => \@files;
+  DEBUG "File list for zipping: " . Dumper \@files;
+  INFO "Writing zip file with ". scalar(@files) ." files";
 
   my $result;
 
