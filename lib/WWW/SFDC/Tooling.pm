@@ -1,4 +1,5 @@
 package WWW::SFDC::Tooling;
+# ABSTRACT: Interface to the Salesforce.com Tooling API
 
 use 5.12.0;
 use strict;
@@ -11,18 +12,6 @@ use Scalar::Util 'blessed';
 
 use Moo;
 with 'MooX::Singleton', 'WWW::SFDC::Role::Session', 'WWW::SFDC::Role::CRUD';
-
-=head1 NAME
-
-WWW::SFDC::Tooling - Wrapper around SFDC Tooling API
-
-=head1 VERSION
-
-Version 0.1
-
-=cut
-
-our $VERSION = '0.1';
 
 =head1 SYNOPSIS
 
@@ -44,9 +33,7 @@ sub _extractURL {
   return $_[1]->{serverUrl} =~ s{/u/}{/T/}r;
 }
 
-=head1 METHODS
-
-=head2 create
+=method create
 
 =cut
 
@@ -77,7 +64,7 @@ sub _prepareSObjects {
     } @_;
 }
 
-=head2 describeGlobal
+=method describeGlobal
 
 =cut
 
@@ -85,7 +72,7 @@ sub describeGlobal {
   ...
 }
 
-=head2 describeSObjects
+=method describeSObjects
 
 =cut
 
@@ -93,7 +80,7 @@ sub describeSObjects {
   ...
 }
 
-=head2 executeAnonymous
+=method executeAnonymous
 
     WWW::SFDC::Tooling->instance()->executeAnonymous("system.debug(1);")
 
@@ -118,7 +105,7 @@ sub executeAnonymous {
   return $result;
 }
 
-=head2 runTests
+=method runTests
 
   SFDC::Tooling->instance()->runTests('name','name2');
 
@@ -133,7 +120,7 @@ sub runTests {
   );
 }
 
-=head2 runTestsAsynchronous
+=method runTestsAsynchronous
 
 =cut
 
@@ -143,21 +130,9 @@ sub runTestsAsynchronous {
   return $self->_call('runTestsAsynchronous', join ",", @ids);
 }
 
-=head2 upsert
-
-=cut
-
-sub upsert {
- ...
-}
-
 1;
 
 __END__
-
-=head1 AUTHOR
-
-Alexander Brett, C<< <alex at alexander-brett.co.uk> >>
 
 =head1 BUGS
 
@@ -170,31 +145,3 @@ You can find documentation for this module with the perldoc command.
     perldoc WWW::SFDC::Tooling
 
 You can also look for information at L<https://github.com/alexander-brett/WWW-SFDC>
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2015 Alexander Brett.
-
-This program is distributed under the MIT (X11) License:
-L<http://www.opensource.org/licenses/mit-license.php>
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.

@@ -1,4 +1,5 @@
 package WWW::SFDC::Zip;
+# ABSTRACT: Utilities for manipulating base64 encoded zip files.
 
 use 5.12.0;
 use strict;
@@ -12,19 +13,6 @@ use IO::File;
 use IO::Uncompress::Unzip qw($UnzipError);
 use Log::Log4perl ':easy';
 use MIME::Base64;
-
-=head1 NAME
-
-WWW::SFDC::Zip - Utilities for manipulating base64 encoded zip files.
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
-
-our $VERSION = '0.01';
-
 
 =head1 SYNOPSIS
 
@@ -46,9 +34,7 @@ BEGIN {
   our @EXPORT_OK = qw(unzip makezip);
 }
 
-=head1 SUBROUTINES
-
-=head2 unzip $destFolder, $dataString, $callback
+=func unzip $destFolder, $dataString, $callback
 
 Takes a some base64 $data and turns it into a file tree, starting
 at $dest. It does this by turning unpackaged/ into $dest/ whilst
@@ -113,7 +99,7 @@ sub unzip {
   return "Success";
 }
 
-=head2 makezip \%options, @fileList
+=func makezip \%options, @fileList
 
 Creates and returns a zip stream from the file list
 given. Replaces unpackaged/ with $options{basedir} if set.
@@ -159,10 +145,6 @@ sub makezip {
 
 __END__
 
-=head1 AUTHOR
-
-Alexander Brett, C<< <alex at alexander-brett.co.uk> >>
-
 =head1 BUGS
 
 Please report any bugs or feature requests at L<https://github.com/alexander-brett/WWW-SFDC/issues>.
@@ -174,34 +156,3 @@ You can find documentation for this module with the perldoc command.
     perldoc WWW::SFDC::Zip
 
 You can also look for information at L<https://github.com/alexander-brett/WWW-SFDC>
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2015 Alexander Brett.
-
-This program is distributed under the MIT (X11) License:
-L<http://www.opensource.org/licenses/mit-license.php>
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-
-=cut

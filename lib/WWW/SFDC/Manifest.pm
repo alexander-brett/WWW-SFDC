@@ -1,4 +1,5 @@
 package WWW::SFDC::Manifest;
+# ABSTRACT: Utility functions for Salesforce Metadata API interactions.
 
 use 5.12.0;
 use strict;
@@ -17,18 +18,6 @@ has 'manifest', is => 'rw', default => sub { {} };
 has 'isDeletion', is => 'ro';
 has 'srcDir', is => 'rw', default => 'src';
 has 'apiVersion', is => 'rw', default => 33;
-
-=head1 NAME
-
-WWW::SFDC::Manifest - utility functions for Salesforce Metadata API interactions
-
-=head1 VERSION
-
-Version 0.1
-
-=cut
-
-our $VERSION = '0.1';
 
 =head1 SYNOPSIS
 
@@ -135,11 +124,7 @@ sub _dedupe {
   return $self;
 }
 
-=head1 METHODS
-
-=over 4
-
-=item getFileList(@list)
+=method getFileList(@list)
 
 Returns a list of files needed to deploy this manifest. Use this to construct
 a .zip file.
@@ -163,7 +148,7 @@ sub getFileList {
   } keys %{$self->manifest};
 }
 
-=item add($manifest)
+=method add($manifest)
 
 Adds an existing manifest object or hash to this one.
 
@@ -181,7 +166,7 @@ sub add {
   return $self->_dedupe();
 }
 
-=item addList($isDeletion, @list)
+=method addList($isDeletion, @list)
 
 Adds a list of components or file paths to the manifest file.
 
@@ -205,7 +190,7 @@ sub addList {
   } map {$self->_splitLine($_)} @_;
 }
 
-=item readFromFile $location
+=method readFromFile $location
 
 Reads a salesforce package manifest and adds it to the current object, then
 returns it.
@@ -228,7 +213,7 @@ sub readFromFile {
       }, 1;
 }
 
-=item writeToFile $location
+=method writeToFile $location
 
 Writes the manifest's XML representation to the given file and returns
 the manifest object.
@@ -242,7 +227,7 @@ sub writeToFile {
   return $self;
 }
 
-=item getXML($mapref)
+=method getXML($mapref)
 
 Returns the XML representation for this manifest.
 
@@ -270,12 +255,6 @@ sub getXML {
 
 __END__
 
-=back
-
-=head1 AUTHOR
-
-Alexander Brett, C<< <alex at alexander-brett.co.uk> >>
-
 =head1 BUGS
 
 Please report any bugs or feature requests at L<https://github.com/alexander-brett/WWW-SFDC/issues>.
@@ -287,32 +266,3 @@ You can find documentation for this module with the perldoc command.
     perldoc WWW::SFDC::Manifest
 
 You can also look for information at L<https://github.com/alexander-brett/WWW-SFDC>
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2015 Alexander Brett.
-
-This program is distributed under the MIT (X11) License:
-L<http://www.opensource.org/licenses/mit-license.php>
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
-
 package WWW::SFDC::Apex;
+# ABSTRACT: Interface to the salesforce.com Apex SOAP Api
 
 use 5.12.0;
 use strict;
@@ -8,13 +8,10 @@ use warnings;
 
 use Log::Log4perl ':easy';
 use WWW::SFDC::SessionManager;
+use SOAP::Lite;
 
 use Moo;
 with "MooX::Singleton", "WWW::SFDC::Role::Session";
-
-use SOAP::Lite;
-
-our $VERSION = '0.1';
 
 has 'uri',
     is => 'ro',
@@ -61,7 +58,6 @@ sub executeAnonymous {
       ))->uri($self->uri) : (),
    );
 
-  
   LOGDIE "ExecuteAnonymous failed to compile: " . $result->{compileProblem}
     if $result->{compiled} eq "false";
 
@@ -85,3 +81,5 @@ sub wsdlToApex {
 }
 
 1;
+
+__END__

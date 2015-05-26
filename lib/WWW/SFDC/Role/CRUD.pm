@@ -1,4 +1,5 @@
 package WWW::SFDC::Role::CRUD;
+# ABSTRACT: Shared methods between partner and tooling APIs
 
 use 5.12.0;
 use strict;
@@ -12,9 +13,7 @@ use SOAP::Lite;
 
 requires qw'';
 
-# BASICALLY SHARED METHODS BETWEEN PARTNER AND TOOLING APIs
-
-=head2 query
+=method query
 
   say $_->{Id} for WWW::SFDC::Partner->instance()->query($queryString);
 
@@ -25,7 +24,7 @@ recieve, at which point it will return the entire list.
 As it stands, if you want the native API behaviour, you will need to use the
 internal methods _query and _queryMore.
 
-=head2 queryAll
+=method queryAll
 
 This has the same additional behaviour as query().
 
@@ -111,7 +110,7 @@ sub queryAll {
   );
 }
 
-=head2 create
+=methed create
 
   say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->create(
     {type => 'thing', Id => 'foo', Field__c => 'bar', Name => 'baz'}
@@ -134,7 +133,7 @@ sub create {
   } spart 200, @_;
 }
 
-=head2 update
+=method update
 
   say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->update(
     {type => 'thing', Id => 'foo', Field__c => 'bar', Name => 'baz'}
@@ -157,7 +156,7 @@ sub update {
    );
 }
 
-=head2 delete
+=method delete
 
   say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->delete(@ids);
 
@@ -177,9 +176,9 @@ sub delete {
     );
 }
 
-=head2 delete
+=method undelete
 
-  say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->delete(@ids);
+  say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->undelete(@ids);
 
 Returns an array that looks like [{success => 1, id => 'id'}, {}...] with LOWERCASE keys.
 
@@ -213,10 +212,6 @@ sub retrieve {
 
 __END__
 
-=head1 AUTHOR
-
-Alexander Brett, C<< <alex at alexander-brett.co.uk> >>
-
 =head1 BUGS
 
 Please report any bugs or feature requests at L<https://github.com/alexander-brett/WWW-SFDC/issues>.
@@ -228,31 +223,3 @@ You can find documentation for this module with the perldoc command.
     perldoc WWW::SFDC::Role::CRUD
 
 You can also look for information at L<https://github.com/alexander-brett/WWW-SFDC>
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2015 Alexander Brett.
-
-This program is distributed under the MIT (X11) License:
-L<http://www.opensource.org/licenses/mit-license.php>
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.

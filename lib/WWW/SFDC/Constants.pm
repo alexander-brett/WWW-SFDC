@@ -1,13 +1,12 @@
 package WWW::SFDC::Constants;
+# ABSTRACT: Data about SFDC Metadata Components.
 
 use 5.12.0;
 use strict;
 use warnings;
-use Log::Log4perl ':easy';
 
 use List::Util 'first';
-
-our $VERSION = '0.1';
+use Log::Log4perl ':easy';
 
 BEGIN {
   use Exporter;
@@ -237,11 +236,7 @@ my %TYPES = (
   },
 );
 
-=head1 Methods
-
-These are pretty self-explanatory.
-
-=head2 needsMetaFile
+=method needsMetaFile
 
 =cut
 
@@ -249,7 +244,7 @@ sub needsMetaFile {
   return $TYPES{+shift}->{meta};
 }
 
-=head2 hasFolders
+=method hasFolders
 
 =cut
 
@@ -257,7 +252,7 @@ sub hasFolders {
   return $TYPES{+shift}->{folders};
 }
 
-=head2 getEnding
+=method getEnding
 
 =cut
 
@@ -265,7 +260,7 @@ sub getEnding {
   return $TYPES{+shift}->{ending};
 }
 
-=head2 getDiskName
+=method getDiskName
 
 =cut
 
@@ -274,7 +269,7 @@ sub getDiskName {
   return first {$TYPES{$_}->{name} eq $query} keys %TYPES;
 }
 
-=head2 getName
+=method getName
 
 =cut
 
@@ -283,7 +278,7 @@ sub getName {
   return $TYPES{$type}->{name} or LOGDIE "Type $type doesn't have a name!";
 }
 
-=head2 getSubcomponents
+=method getSubcomponents
 
 =cut
 

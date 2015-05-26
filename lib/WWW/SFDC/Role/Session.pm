@@ -1,4 +1,5 @@
 package WWW::SFDC::Role::Session;
+# ABSTRACT: Provides a transparent interface to WWW::SFDC::SessionManager
 
 use 5.12.0;
 use strict;
@@ -8,19 +9,6 @@ use Moo::Role;
 use Module::Loaded;
 
 use WWW::SFDC::SessionManager;
-
-=head1 NAME
-
-WWW::SFDC::Role::Session - Provides a transparent interface to WWW::SFDC::SessionManager
-
-
-=head1 VERSION
-
-Version 0.1
-
-=cut
-
-our $version = '0.1';
 
 =head1 SYNOPSIS
 
@@ -88,10 +76,6 @@ sub _sleep {
 
 __END__
 
-=head1 AUTHOR
-
-Alexander Brett, C<< <alex at alexander-brett.co.uk> >>
-
 =head1 BUGS
 
 Please report any bugs or feature requests at L<https://github.com/alexander-brett/WWW-SFDC/issues>.
@@ -103,31 +87,3 @@ You can find documentation for this module with the perldoc command.
     perldoc WWW::SFDC::Role::Session
 
 You can also look for information at L<https://github.com/alexander-brett/WWW-SFDC>
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2015 Alexander Brett.
-
-This program is distributed under the MIT (X11) License:
-L<http://www.opensource.org/licenses/mit-license.php>
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
