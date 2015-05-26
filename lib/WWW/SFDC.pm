@@ -1,7 +1,24 @@
 package WWW::SFDC;
-# ABSTRACT: Wrappers arount the Salesforce.com APIs.
+# ABSTRACT: Wrappers around the Salesforce.com APIs.
 
-1; # this is a documentation module
+use strict;
+use warnings;
+use 5.12.0;
+
+sub import {
+  my $class = shift;
+
+  @_ = qw(Apex Constants Manifest Metadata Partner SessionManager Tooling Zip)
+    unless @_;
+
+  for (@_) {
+    my $module = "WWW/SFDC/$_.pm";
+    require $module;
+  }
+
+}
+
+1;
 
 __END__
 
@@ -10,6 +27,13 @@ __END__
 WWW::SFDC provides a set of packages which you can use to build useful
 interactions with Salesforce.com's many APIs. Initially it was intended
 for the construction of powerful and flexible deployment tools.
+
+    use WWW::SFDC; # Import everything
+
+    use WWW::SFDC::Tooling; # Just the tooling API interface
+
+    use WWW::SFDC qw'Metadata Manifest';
+        # Equivalent to importing WWW::SFDC::Metadata and WWW::SFDC::Manifest
 
 =head1 CONTENTS
 

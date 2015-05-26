@@ -138,7 +138,7 @@ sub _checkRetrieval {
   INFO "Status:" . $$result{status};
 
   return $result->{zipFile} if $$result{status} eq "Succeeded";
-  return undef if $$result{status} =~ /Pending|InProgress/;
+  return if $$result{status} =~ /Pending|InProgress/;
   LOGDIE "Check Retrieve had an unexpected result: ".$$result{message};
 }
 
@@ -178,7 +178,7 @@ sub _checkDeployment {
 
   INFO "Deployment status:\t".$$result{status};
   return 1 if $$result{status} eq "Succeeded";
-  return undef if $$result{status} =~ /Queued|Pending|InProgress/;
+  return if $$result{status} =~ /Queued|Pending|InProgress/;
   # useful deployment error here please
   LOGDIE "DEPLOYMENT FAILED: ".Dumper $result->{details}->{componentFailures}
     if $result->{status} eq "Failed";
