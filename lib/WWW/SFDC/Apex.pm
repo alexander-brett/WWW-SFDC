@@ -21,6 +21,11 @@ sub _extractURL {
     return $_[1]->{serverUrl} =~ s{/u/}{/s/}r;
 }
 
+
+=method compileAndTest
+
+=cut
+
 sub compileAndTest {
   my ($self, @names) = @_;
 
@@ -29,6 +34,10 @@ sub compileAndTest {
     map {\SOAP::Data->name(classes => $_)} @names
     );
 }
+
+=method compileClasses
+
+=cut
 
 sub compileClasses {
   my ($self, @names) = @_;
@@ -39,6 +48,10 @@ sub compileClasses {
     );
 }
 
+=method compileTriggers
+
+=cut
+
 sub compileTriggers {
   my ($self, @names) = @_;
 
@@ -47,6 +60,10 @@ sub compileTriggers {
     map {\SOAP::Data->name(classes => $_)} @names
     );
 }
+
+=method executeAnonymous
+
+=cut
 
 sub executeAnonymous {
   my ($self, $code, %options) = @_;
@@ -67,6 +84,10 @@ sub executeAnonymous {
   return $result, (defined $headers ? $headers->{debugLog} : ());
 }
 
+=method runTests
+
+=cut
+
 sub runTests {
   my ($self, @names) = @_;
 
@@ -75,6 +96,12 @@ sub runTests {
     map {\SOAP::Data->name(classes => $_)} @names
     );
 }
+
+=method wsdlToApex
+
+Unimplemented
+
+=cut
 
 sub wsdlToApex {
     ...

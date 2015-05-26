@@ -55,8 +55,11 @@ sub unzip {
   # for this function
   my ($dest, $data, $callback) = @_;
   INFO "Unzipping files to $dest";
-  DEBUG "Data to unzip" => $data;
+  TRACE "Data to unzip" => $data;
   LOGDIE "No destination!" unless $dest;
+
+  # Ensure $dest ends with a /
+  $dest =~ s{(?<![/\\])$}{/};
 
   $data = decode_base64 $data;
   my $unzipper = IO::Uncompress::Unzip->new(\$data)
@@ -64,10 +67,12 @@ sub unzip {
 
   my $status;
 
-  do {
+  for ($status = 1; $status > 0; $status = $unzipper->nextStream()) {
     my $header = $unzipper->getHeaderInfo();
     my (undef, $folder, $name) = splitpath($header->{Name});
-    $folder =~ s/unpackaged/$dest/;
+
+    $folder =~ s{unpackaged/}{};
+    $folder = $dest.$folder;
 
     # create folder on disk unless it exists already
     mkpath($folder) or LOGDIE "Couldn't mkdir $folder: $!" unless -d $folder;
@@ -94,7 +99,7 @@ sub unzip {
       my $stored_time = $header->{'Time'};
       utime ($stored_time, $stored_time, $path) or LOGDIE "Couldn't touch $path: $!";
     }
-  } until ($status = $unzipper->nextStream()) < 1;
+  };
 
   return "Success";
 }

@@ -110,7 +110,7 @@ sub queryAll {
   );
 }
 
-=methed create
+=method create
 
   say "$$_{id}:\t$$_{success}" for WWW::SFDC::Partner->instance()->create(
     {type => 'thing', Id => 'foo', Field__c => 'bar', Name => 'baz'}
@@ -195,6 +195,12 @@ sub undelete {
         map {SOAP::Data->name('ids' => $_)} @_
     );
 }
+
+=method retrieve
+
+Retrieves SObjects by ID. Not to be confused with the metadata retrieve method.
+
+=cut
 
 sub retrieve {
     my $self = shift;

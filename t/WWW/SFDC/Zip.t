@@ -38,30 +38,32 @@ my $PACKAGE = '<?xml version="1.0" encoding="UTF-8"?>
 
 rmtree $FOLDER if -e $FOLDER;
 
+rmtree $FOLDER if -e $FOLDER;
+
 subtest "unzip pre-defined zip file", sub {
-  WWW::SFDC::Zip::unzip ($FOLDER, $ZIP);
-  ok -e "$FOLDER/objects/Site.object" 
-    and is (read_file("$FOLDER/objects/Site.object"), $OBJECT);
-  ok -e "$FOLDER/workflows/Site.workflow"
-    and is (read_file("$FOLDER/workflows/Site.workflow"), $WORKFLOW);
-  ok -e "$FOLDER/package.xml"
-    and is (read_file("$FOLDER/Package.xml"), $PACKAGE);
+  WWW::SFDC::Zip::unzip($FOLDER, $ZIP);
+  ok -e "$FOLDER/objects/Site.object";
+  is (read_file("$FOLDER/objects/Site.object"), $OBJECT);
+  ok -e "$FOLDER/workflows/Site.workflow";
+  is (read_file("$FOLDER/workflows/Site.workflow"), $WORKFLOW);
+  ok -e "$FOLDER/package.xml";
+  is (read_file("$FOLDER/package.xml"), $PACKAGE);
   done_testing();
 };
 
 subtest "zip and unzip is eidempotent", sub {
-  my $newZip = WWW::SFDC::Zip::makezip('', "$FOLDER/objects/Site.object",
-				  "$FOLDER/workflows/Site.workflow",
-				  "$FOLDER/package.xml");
+  my $newZip = WWW::SFDC::Zip::makezip("$FOLDER", "objects/Site.object",
+          "workflows/Site.workflow",
+          "package.xml");
 
   rmtree $FOLDER;
   WWW::SFDC::Zip::unzip($FOLDER, $newZip);
-  ok -e "$FOLDER/objects/Site.object"
-    and is (read_file("$FOLDER/objects/Site.object"), $OBJECT);
-  ok -e "$FOLDER/workflows/Site.workflow"
-    and is (read_file("$FOLDER/workflows/Site.workflow"), $WORKFLOW);
-  ok -e "$FOLDER/package.xml"
-    and is (read_file("$FOLDER/Package.xml"), $PACKAGE);
+  ok -e "$FOLDER/objects/Site.object";
+  is (read_file("$FOLDER/objects/Site.object"), $OBJECT);
+  ok -e "$FOLDER/workflows/Site.workflow";
+  is (read_file("$FOLDER/workflows/Site.workflow"), $WORKFLOW);
+  ok -e "$FOLDER/package.xml";
+  is (read_file("$FOLDER/Package.xml"), $PACKAGE);
   done_testing();
 };
 
