@@ -3,6 +3,12 @@ WWW-SFDC
 Provides wrappers around and utilities for the Salesforce.com
 Metadata, Partner and Tooling APIs.
 
+#####################################################################
+DEPRECATED
+
+This code has now moved to https://github.com/sophos/WWW-SFDC !
+#####################################################################
+
 DOCUMENTATION
 
 High-level documentation on this module is stored in lib/WWW/SFDC.pm
